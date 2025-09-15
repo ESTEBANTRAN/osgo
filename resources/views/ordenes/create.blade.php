@@ -5,6 +5,7 @@
 @section('content')
 <form
   x-data="wizard()"
+  x-init="init()"
   @submit.prevent="submitForm()"
   id="ordenForm"
   action="{{ route('retornarOrden') }}"
@@ -259,14 +260,19 @@
             </div>
             <div>
               <label for="responsable" class="block text-sm font-medium">Responsable Operativo</label>
-              <input
+              <select
                 id="responsable"
-                type="text"
                 name="responsable"
                 x-model="form.responsable"
-                placeholder="Nombre..."
-                class="input-base"
-              />
+                class="select-base"
+                @change="$dispatch('responsable-selected', { value: $event.target.value })"
+              >
+                <option value="">Seleccione un responsable</option>
+                <template x-for="persona in personas" :key="persona.id">
+                  <option :value="persona.id" x-text="persona.nombre_completo"></option>
+                </template>
+              </select>
+              <div x-show="loadingPersonas" class="mt-1 text-sm text-gray-500">Cargando responsables...</div>
             </div>
           </div>
           <div>
@@ -711,6 +717,49 @@
       includeEventos: false,
       includeUEA: false,
       currentStep: 1,
+      
+      // estado para personas
+      personas: [],
+      loadingPersonas: false,
+      errorLoadingPersonas: false,
+      
+      // Inicialización del componente
+      init() {
+        this.loadPersonas();
+      },
+      
+      // Cargar la lista de personas
+      async loadPersonas() {
+        this.loadingPersonas = true;
+        this.errorLoadingPersonas = false;
+        
+        try {
+          // Asumimos que el ID de función para 'Gerente Operativo' es 1
+          // Ajusta este valor según corresponda en tu base de datos
+          const funcionId = 1; 
+          
+          const response = await fetch(`/api/personas/por-funcion/${funcionId}`);
+          
+          if (!response.ok) {
+            throw new Error('Error al cargar los responsables');
+          }
+          
+          const data = await response.json();
+          
+          if (data.success) {
+            this.personas = data.data;
+          } else {
+            throw new Error(data.message || 'Error al cargar los responsables');
+          }
+        } catch (error) {
+          console.error('Error:', error);
+          this.errorLoadingPersonas = true;
+          // Mostrar mensaje de error al usuario
+          alert('No se pudieron cargar los responsables. Por favor, intente recargar la página.');
+        } finally {
+          this.loadingPersonas = false;
+        }
+      },
 
       // pestañas internas
       innerTab: 'basic',

@@ -1,0 +1,296 @@
+---
+alwaysApply: true
+---
+================================================================================
+                    REGLAS Y ACLARACIONES PARA EL DESARROLLO DE OSGO
+                    Sistema de Gestión Operativa
+================================================================================
+
+FECHA DE CREACIÓN: 2025-01-27
+VERSIÓN: 1.0
+PROPÓSITO: Documentar todas las reglas, restricciones y aclaraciones que deben
+          seguirse durante el desarrollo del sistema OSGO y su base de datos.
+
+================================================================================
+1. RESTRICCIONES DE BASE DE DATOS
+================================================================================
+
+1.1 TABLAS DEL SISTEMA
+-----------------------
+- SOLO se pueden modificar tablas con prefijo "osgo_"
+- NO se pueden crear nuevas tablas
+- NO se pueden eliminar tablas existentes
+- Las tablas sin prefijo "osgo_" son de sistemas externos y NO se pueden modificar
+
+1.2 CAMPOS DE TABLAS OSGO
+-------------------------
+- SÍ se pueden modificar campos de tablas existentes con prefijo "osgo_"
+- SÍ se pueden agregar nuevos campos a tablas existentes
+- SÍ se pueden eliminar campos de tablas existentes (con precaución)
+- NO se pueden modificar campos de tablas sin prefijo "osgo_"
+
+1.3 DATOS EN TABLAS EXTERNAS
+----------------------------
+- SÍ se pueden insertar datos de ejemplo en tablas externas
+- SÍ se pueden eliminar datos de tablas externas
+- NO se pueden modificar la estructura de tablas externas
+
+================================================================================
+2. LÓGICA DE MAESTRO-DETALLE
+================================================================================
+
+2.1 PRINCIPIOS FUNDAMENTALES
+-----------------------------
+- Respetar siempre las relaciones de integridad referencial
+- Las tablas maestras contienen datos de referencia
+- Las tablas de detalle contienen datos específicos que referencian a los maestros
+- Mantener consistencia en las claves foráneas
+
+2.2 ESTRUCTURA DE ÓRDENES DE SERVICIO
+-------------------------------------
+MAESTRO: osgo_orden_servicio
+├── ID_ORDEN_SERVICIO (PK)
+├── NRO_ORDEN (único)
+├── FECHA
+├── DISTRITO, PROVINCIA, CIUDAD
+├── ID_ESTADO_ORDEN (FK → osgo_estado_orden)
+└── Campos adicionales para parametrización
+
+DETALLE: osgo_detalle_orden_servicio
+├── ID_DET_ORDEN_SERVICIO (PK)
+├── ID_ORDEN_SERVICIO (FK → osgo_orden_servicio)
+├── ID_FUNCION (FK → funciones) - puede ser NULL
+├── GRUPO_FUNCIONAL, FUNCION
+├── RESPONSABLE, SECTOR
+└── Campos específicos del detalle
+
+2.3 RELACIONES CRÍTICAS
+-----------------------
+- osgo_orden_servicio.ID_ESTADO_ORDEN → osgo_estado_orden.ID_ESTADO_ORDEN
+- osgo_detalle_orden_servicio.ID_ORDEN_SERVICIO → osgo_orden_servicio.ID_ORDEN_SERVICIO
+- osgo_detalle_orden_servicio.ID_FUNCION → funciones.ID_FUNCION (puede ser NULL)
+
+================================================================================
+3. PARAMETRIZACIÓN DE DATOS
+================================================================================
+
+3.1 PRINCIPIO FUNDAMENTAL
+-------------------------
+"Menos libertad al usuario = mejor parametrización"
+- Los usuarios NO deben tener campos de texto libre
+- Todos los campos deben ser seleccionables desde registros predefinidos
+- Usar dropdowns, checkboxes, radio buttons en lugar de inputs de texto
+
+3.2 CAMPOS PARAMETRIZADOS OBLIGATORIOS
+--------------------------------------
+- DISTRITO: Seleccionar de osgo_sectores.SECTOR
+- PROVINCIA: Valores fijos (IMABABURA, etc.)
+- CIUDAD: Valores fijos (IBARRA, etc.)
+- TIPO_ORDEN: Valores fijos (GENERAL, ESPECIAL)
+- OPERACIONES: Valores fijos (P3, P4, etc.)
+- GRUPO_FUNCIONAL: Valores fijos (GERENCIA, PATRULLEROS, MOTORIZADO, PEDESTRE)
+- TIPO_SERVICIO: Valores fijos (MOTORIZADO, PEDESTRE, ADMINISTRATIVO)
+- TIPO_VEHICULO: Seleccionar de osgo_tipo_vehiculo.TIPO_VEHICULO
+- HORARIO: Seleccionar de osgo_horarios.NOMBRE
+
+3.3 CAMPOS DE TEXTO LIBRE (MÍNIMOS)
+-----------------------------------
+- NOVEDADES: Descripción específica del servicio
+- OBSERVACION: Observaciones adicionales
+- DESCRIPCION_RUTA: Descripción detallada de la ruta
+- INSTRUCCIONES_ESPECIALES: Instrucciones específicas
+
+================================================================================
+4. ESTRUCTURA DE DATOS DE EJEMPLO
+================================================================================
+
+4.1 ÓRDENES DE SERVICIO
+-----------------------
+- NRO_ORDEN: Secuencial (274, 273, 272, 271...)
+- FECHA: Formato YYYY-MM-DD
+- DIA_SEMANA: Valores fijos (MIÉRCOLES, JUEVES, VIERNES, SÁBADO...)
+- FECHA_COMPLETA: Formato legible (2 DE ABRIL DE 2025)
+- TIPO_ORDEN: GENERAL (por defecto)
+- OPERACIONES: P3 (por defecto)
+- REVISION: 00 (por defecto)
+- FORMATO: "11 julio 2022" (fijo)
+
+4.2 RECURSOS OPERATIVOS
+-----------------------
+- PATRULLEROS: T1 IMA1300, T2 IMA1506, T3 IMA1383
+- GRÚAS: IMA-1289
+- MOTORIZADOS: GA611K, GA616K
+- Cada recurso tiene: PLACA, TIPO_VEHICULO, GRUPO_ASIGNADO, HORARIO_DISPONIBILIDAD
+
+4.3 HORARIOS DE TRABAJO
+-----------------------
+- TURNO MAÑANA: 06:00-14:00 (8 horas)
+- TURNO TARDE: 14:00-22:00 (8 horas)
+- TURNO NOCHE: 22:00-06:00 (8 horas)
+- TURNO ESPECIAL: 12:00-20:00 (8 horas)
+- TURNO ADMINISTRATIVO: 08:00-17:00 (9 horas)
+
+================================================================================
+5. CONVENCIONES DE NOMENCLATURA
+================================================================================
+
+5.1 TABLAS
+----------
+- Prefijo obligatorio: "osgo_"
+- Nombres en minúsculas con guiones bajos
+- Ejemplos: osgo_orden_servicio, osgo_detalle_orden_servicio
+
+5.2 CAMPOS
+----------
+- Nombres en MAYÚSCULAS para campos principales
+- Nombres en camelCase para campos adicionales
+- Ejemplos: ID_ORDEN_SERVICIO, NRO_ORDEN, created_at
+
+5.3 VALORES
+-----------
+- Valores fijos en MAYÚSCULAS
+- Ejemplos: "GENERAL", "MOTORIZADO", "PATRULLERO"
+
+================================================================================
+6. RESTRICCIONES DE DESARROLLO
+================================================================================
+
+6.1 MIGRACIONES
+---------------
+- SOLO crear migraciones para tablas con prefijo "osgo_"
+- NO crear migraciones para tablas externas
+- Verificar estructura antes de crear migraciones
+- Usar updateOrInsert() en seeders para evitar duplicados
+
+6.2 SEEDERS
+-----------
+- Poblar tablas maestras PRIMERO
+- Poblar tablas de detalle DESPUÉS
+- Usar transacciones para operaciones complejas
+- Manejar claves foráneas correctamente
+
+6.3 VALIDACIONES
+----------------
+- Validar existencia de registros maestros antes de insertar detalles
+- Usar claves foráneas para mantener integridad
+- Manejar valores NULL apropiadamente
+
+================================================================================
+7. CAMPOS AGREGADOS PARA PARAMETRIZACIÓN
+================================================================================
+
+7.1 osgo_orden_servicio
+-----------------------
+- DIA_SEMANA: Día de la semana (MIÉRCOLES, JUEVES, etc.)
+- FECHA_COMPLETA: Fecha completa (2 DE ABRIL DE 2025)
+- TIPO_ORDEN: Tipo de orden (GENERAL, ESPECIAL)
+- OPERACIONES: Tipo de operaciones (P3, P4, etc.)
+- DISPOSICIONES_GENERALES: Disposiciones generales de la orden
+- REVISION: Número de revisión (00, 01, etc.)
+- FORMATO: Formato del documento (11 julio 2022)
+- EJEMPLAR_NUMERO: Número de ejemplar
+
+7.2 osgo_detalle_orden_servicio
+-------------------------------
+- HORARIO: Horario de trabajo (06:00-14:00)
+- TIPO_SERVICIO: Tipo de servicio (MOTORIZADO, PEDESTRE, ADMINISTRATIVO)
+- PLACA_VEHICULO: Placa del vehículo asignado
+- GRUPO_ASIGNADO: Grupo asignado (GRUPO_A, GRUPO_B, etc.)
+- CIRCUITO: Circuito asignado (CIRCUITO UNO, DOS, etc.)
+- DESCRIPCION_RUTA: Descripción detallada de la ruta
+- TIPO_VEHICULO: Tipo de vehículo (PATRULLERO, GRUA, MOTORIZADO)
+- REQUIERE_ACOMPANANTE: Si requiere acompañante (boolean)
+- ACOMPANANTE: Nombre del acompañante
+- INSTRUCCIONES_ESPECIALES: Instrucciones especiales para el servicio
+
+7.3 osgo_recursos
+-----------------
+- PLACA: Placa del vehículo
+- TIPO_VEHICULO: Tipo de vehículo (PATRULLERO, GRUA, MOTORIZADO)
+- GRUPO_ASIGNADO: Grupo asignado
+- DESCRIPCION_FUNCION: Descripción de la función del recurso
+- HORARIO_DISPONIBILIDAD: Horario de disponibilidad
+- REQUIERE_CONDUCTOR: Si requiere conductor (boolean)
+- REQUIERE_ACOMPANANTE: Si requiere acompañante (boolean)
+- ESTADO_OPERATIVO: Estado operativo del recurso (DISPONIBLE, EN_USO, etc.)
+
+================================================================================
+8. CONSIDERACIONES DE SEGURIDAD
+================================================================================
+
+8.1 VALIDACIÓN DE DATOS
+-----------------------
+- Validar todos los inputs del usuario
+- Sanitizar datos antes de insertar en BD
+- Usar prepared statements para evitar SQL injection
+
+8.2 PERMISOS Y ROLES
+--------------------
+- Implementar sistema de roles (ADMIN, SUPERVISOR, OPERADOR)
+- Restringir acceso a funciones según el rol
+- Validar permisos en cada operación
+
+8.3 AUDITORÍA
+-------------
+- Registrar quién creó/modificó cada registro
+- Mantener historial de cambios
+- Timestamps de creación y modificación
+
+================================================================================
+9. CONSIDERACIONES DE RENDIMIENTO
+================================================================================
+
+9.1 ÍNDICES
+-----------
+- Crear índices en campos de búsqueda frecuente
+- Índices en claves foráneas
+- Índices compuestos para consultas complejas
+
+9.2 CONSULTAS
+-------------
+- Optimizar consultas con JOINs
+- Usar paginación para listas grandes
+- Evitar consultas N+1
+
+================================================================================
+10. MANTENIMIENTO Y EVOLUCIÓN
+================================================================================
+
+10.1 VERSIONADO
+---------------
+- Mantener versiones de migraciones
+- Documentar cambios en estructura
+- Backup antes de cambios importantes
+
+10.2 TESTING
+------------
+- Crear tests para funcionalidades críticas
+- Tests de integridad de datos
+- Tests de validaciones
+
+================================================================================
+11. NOTAS IMPORTANTES
+================================================================================
+
+11.1 CAMBIOS REALIZADOS
+-----------------------
+- Se agregaron campos de parametrización a tablas existentes
+- Se creó seeder con datos de ejemplo basados en documentos reales
+- Se respetó la lógica de maestro-detalle existente
+- Se mantuvieron las restricciones de tablas externas
+
+11.2 PRÓXIMOS PASOS RECOMENDADOS
+--------------------------------
+1. Crear interfaz de usuario para gestión de órdenes
+2. Implementar validaciones de parametrización
+3. Crear reportes basados en los datos estructurados
+4. Implementar sistema de roles y permisos
+5. Crear dashboard con métricas operativas
+
+================================================================================
+FIN DEL DOCUMENTO
+================================================================================
+
+Este documento debe ser consultado en cada fase del desarrollo para asegurar
+el cumplimiento de las reglas establecidas y mantener la consistencia del
+sistema OSGO.

@@ -1,0 +1,478 @@
+================================================================================
+                    DOCUMENTACIÓN DE LA BASE DE DATOS OSGO
+                    Sistema de Gestión Operativa
+================================================================================
+
+FECHA DE ANÁLISIS: 2025-01-27
+VERSIÓN DEL SISTEMA: 1.0
+TOTAL DE TABLAS: 47 (17 con prefijo osgo_)
+
+================================================================================
+1. RESUMEN EJECUTIVO
+================================================================================
+
+La base de datos OSGO está diseñada para gestionar operaciones y servicios 
+operativos, con un enfoque en:
+
+- Gestión de órdenes de servicio
+- Control de horas trabajadas por personal
+- Administración de anexos de eventos y operaciones
+- Gestión de recursos operativos (vehículos, equipos)
+- Control de personal y asignaciones
+
+ARQUITECTURA:
+- Prefijo principal: "osgo_" para tablas del sistema
+- Tablas de soporte sin prefijo para compatibilidad
+- Relaciones bien definidas con integridad referencial
+- Índices optimizados para consultas frecuentes
+
+================================================================================
+2. TABLAS PRINCIPALES DEL SISTEMA (PREFIJO osgo_)
+================================================================================
+
+2.1 GESTIÓN DE ÓRDENES DE SERVICIO
+-----------------------------------
+
+osgo_orden_servicio
+├── ID_ORDEN_SERVICIO (PK) - Identificador único
+├── NRO_ORDEN - Número de orden (generado automáticamente)
+├── FECHA - Fecha de la orden
+├── DISTRITO - Distrito donde se ejecuta
+├── PROVINCIA - Provincia
+├── CIUDAD - Ciudad
+├── CREADO_POR - Usuario que creó la orden
+├── ID_ESTADO_ORDEN (FK) - Estado actual
+└── FECHA_ACTUAL - Timestamp de creación
+
+osgo_estado_orden
+├── ID_ESTADO_ORDEN (PK) - Identificador único
+├── ESTADO_ORDEN - Nombre del estado
+└── DESCRIPCION - Descripción del estado
+
+ESTADOS DISPONIBLES:
+- Pendiente: Orden recién creada, pendiente de aprobación
+- Aprobada: Orden aprobada y lista para asignar recursos
+- En Curso: Orden en proceso de ejecución
+- Finalizada: Orden concluida exitosamente
+- Cancelada: Orden cancelada y no se realizará
+
+osgo_detalle_orden_servicio
+├── ID_DET_ORDEN_SERVICIO (PK) - Identificador único
+├── ID_ORDEN_SERVICIO (FK) - Referencia a orden
+├── ID_FUNCION (FK) - Función asignada
+├── GRUPO_FUNCIONAL - Grupo al que pertenece
+├── FUNCION - Nombre de la función
+├── CODIGO_RESPONSABLE - Código del responsable
+├── RESPONSABLE - Nombre del responsable
+├── SECTOR - Sector asignado
+├── NOVEDADES - Novedades del servicio
+└── OBSERVACION - Observaciones adicionales
+
+2.2 CONTROL DE HORAS
+--------------------
+
+osgo_control_horas
+├── ID_CONTROL_HORAS (PK) - Identificador único
+├── ID_PERSONA (FK) - Referencia a persona
+├── FECHA - Fecha del control
+├── HORAS_TRABAJADAS - Horas trabajadas (decimal 5,2)
+└── ESTADO - Estado del control
+
+ESTADOS DISPONIBLES:
+- DISPONIBLE: Personal disponible para asignación
+- EN_SERVICIO: Personal actualmente en servicio
+- HORAS_COMPLETADAS: Personal que completó sus horas
+
+osgo_historial_horas
+├── ID_HISTORIAL (PK) - Identificador único
+├── ID_CONTROL_HORAS (FK) - Referencia a control
+├── ID_ORDEN_SERVICIO (FK) - Orden que generó el cambio
+├── HORAS_ANTERIORES - Horas antes del cambio
+├── HORAS_NUEVAS - Horas después del cambio
+├── MOTIVO - Motivo del cambio
+└── CREATED_AT - Timestamp del cambio
+
+osgo_control_horas_mensuales
+├── ID_CONTROL_MENSUAL (PK) - Identificador único
+├── CODIGO_AGENTE - Código del agente
+├── NOMBRES - Nombres del agente
+├── APELLIDOS - Apellidos del agente
+├── ANIO - Año del control
+├── MES - Mes del control
+├── HORAS_TRABAJADAS - Horas trabajadas en el mes
+├── HORAS_EXTRAS - Horas extras trabajadas
+└── HORAS_FALTANTES - Horas faltantes
+
+2.3 ANEXOS DE EVENTOS Y OPERACIONES
+------------------------------------
+
+osgo_anexo
+├── ID_ANEXO (PK) - Identificador único
+├── ID_ORDEN_SERVICIO (FK) - Orden asociada
+├── TIPO_ANEXO - Tipo (EVENTO/OPERACION)
+├── NOMBRE - Nombre del anexo
+├── ORGANIZADOR - Organizador del evento
+├── TELEFONO_ORGANIZADOR - Teléfono del organizador
+├── FECHA - Fecha del evento
+├── HORA_FORMACION - Hora de formación
+├── HORA_INICIO - Hora de inicio
+├── HORA_FIN - Hora de finalización
+├── LUGAR - Lugar del evento
+├── MANDO - Mando responsable
+├── JEFE_CONTROL - Jefe de control
+├── MISION - Misión del evento
+├── GESTION_REQUERIDA - Gestión requerida
+├── RECORRIDO - Recorrido planificado
+├── ANTECEDENTES - Antecedentes
+├── INSTRUCCIONES_COORDINACION - Instrucciones
+├── RUTAGRAMA_IMAGEN - Imagen del rutagrama
+├── NOTAS_RUTAGRAMA - Notas del rutagrama
+├── ESTADO - Estado del anexo
+└── CREADO_POR - Usuario que creó el anexo
+
+ESTADOS DISPONIBLES:
+- PLANIFICADO: Anexo en fase de planificación
+- EN_CURSO: Anexo en ejecución
+- COMPLETADO: Anexo completado exitosamente
+- CANCELADO: Anexo cancelado
+
+osgo_anexo_detalle
+├── ID_ANEXO_DETALLE (PK) - Identificador único
+├── ID_ANEXO (FK) - Referencia al anexo
+├── ORDEN - Orden de presentación
+├── RESPONSABLE - Responsable asignado
+├── FUNCION - Función específica
+├── PUESTO_SERVICIO - Puesto de servicio
+└── OBSERVACION - Observaciones
+
+osgo_anexo_recurso
+├── ID_ANEXO_RECURSO (PK) - Identificador único
+├── ID_ANEXO (FK) - Referencia al anexo
+├── ID_RECURSO (FK) - Recurso asignado
+├── TIPO_RECURSO - Tipo de recurso
+├── CANTIDAD - Cantidad asignada
+├── OBSERVACIONES - Observaciones
+├── created_at - Timestamp de creación
+└── updated_at - Timestamp de actualización
+
+2.4 RECURSOS Y EQUIPOS
+-----------------------
+
+osgo_recursos
+├── ID_RECURSO (PK) - Identificador único
+├── NOMBRE_RECURSO - Nombre del recurso
+├── TIPO_RECURSO - Tipo de recurso
+├── DESCRIPCION - Descripción detallada
+├── UNIDAD_MEDIDA - Unidad de medida
+├── ACTIVO - Estado activo/inactivo
+├── created_at - Timestamp de creación
+└── updated_at - Timestamp de actualización
+
+TIPOS DE RECURSOS DISPONIBLES:
+- PATRULLERO: Vehículos patrulleros
+- MOTOCICLETA: Motocicletas
+- PASOLA: Pasolas
+- GRUA: Grúas
+- TANGO: Vehículos tango
+- CONO: Conos de seguridad
+- VARILLA: Varillas reflectivas
+- SENALETICA: Señaléticas de tránsito
+- CINTA: Cinta de seguridad
+- BARRERA: Barreras de tránsito
+- RADIO: Equipos de radio comunicación
+- MEGAFONO: Megáfonos
+- CHALECO: Chalecos reflectivos
+- LINTERNA: Linternas
+- EXTINTOR: Extintores
+
+osgo_vehiculo
+├── ID_VEHICULO (PK) - Identificador único
+├── PLACA - Placa del vehículo
+└── ACTIVO - Estado activo/inactivo
+
+osgo_tipo_vehiculo
+├── ID_TIPO_VEHICULO (PK) - Identificador único
+└── TIPO_VEHICULO - Tipo de vehículo
+
+osgo_servicio_grua
+├── ID_SERVICIO_GRUA (PK) - Identificador único
+├── PROPIETARIO - Propietario de la grúa
+├── CONTRATO - Número de contrato
+└── TELEFONO - Teléfono de contacto
+
+2.5 HORARIOS Y SECTORES
+------------------------
+
+osgo_horarios
+├── ID_HORARIO (PK) - Identificador único
+├── NOMBRE - Nombre del horario
+├── HORA_INICIO - Hora de inicio (0-23)
+├── HORA_FIN - Hora de fin (0-23)
+├── descripcion - Descripción del horario
+├── duracion_horas - Duración en horas
+└── ACTIVO - Estado activo/inactivo
+
+HORARIOS DISPONIBLES:
+- 06:00-14:00 (Turno mañana)
+- 06:00-12:00 (Medio turno mañana)
+- 14:00-22:00 (Turno tarde)
+- 08:00-12:00 (Medio turno mañana)
+- 22:00-06:00 (Turno noche)
+- 12:00-20:00 (Turno tarde)
+- 13:00-21:00 (Turno tarde)
+- 14:00-20:00 (Medio turno tarde)
+- 22:00-04:00 (Turno noche)
+
+osgo_sectores
+├── ID_SECTOR (PK) - Identificador único
+├── SECTOR - Nombre del sector
+├── DISTRITO - Distrito
+├── CANTON - Cantón
+└── ACTIVO - Estado activo/inactivo
+
+SECTORES DISPONIBLES:
+- Ibarra Centro (Ibarra, Ibarra)
+- Ibarra Norte (Ibarra, Ibarra)
+- Ibarra Sur (Ibarra, Ibarra)
+- Ibarra Este (Ibarra, Ibarra)
+- Ibarra Oeste (Ibarra, Ibarra)
+- Otavalo Centro (Otavalo, Otavalo)
+- Otavalo Norte (Otavalo, Otavalo)
+- Otavalo Sur (Otavalo, Otavalo)
+
+2.6 USUARIOS Y AUTENTICACIÓN
+-----------------------------
+
+osgo_users
+├── ID_USUARIO (PK) - Identificador único
+├── name - Nombre del usuario
+├── email - Email del usuario
+├── email_verified_at - Fecha de verificación
+├── password - Contraseña encriptada
+├── remember_token - Token de recordar sesión
+├── created_at - Timestamp de creación
+└── updated_at - Timestamp de actualización
+
+USUARIOS ACTUALES:
+- Jeremy Flores (jerxav101@gmail.com)
+- Test User (test@example.com)
+- Esteban Aulestia (aulestiaesteban8@gmail.com)
+
+================================================================================
+3. TABLAS DE SOPORTE (SIN PREFIJO osgo_)
+================================================================================
+
+3.1 PERSONAL Y FUNCIONES
+-------------------------
+
+personas
+├── ID_PERSONA (PK) - Identificador único
+├── NOMBRES - Nombres de la persona
+├── APELLIDOS - Apellidos de la persona
+├── CODIGO_AGENTE - Código único del agente
+└── [Otros campos de información personal]
+
+funciones
+├── ID_FUNCION (PK) - Identificador único
+├── FUNCION - Nombre de la función
+└── [Otros campos de la función]
+
+3.2 GRUPOS Y TIPOS
+------------------
+
+grupo_operativo
+├── ID_GRUPO_OPERATIVO (PK) - Identificador único
+├── NOMBRE_GRUPO - Nombre del grupo
+└── [Otros campos del grupo]
+
+tipo_grupo
+├── ID_TIPO_GRUPO (PK) - Identificador único
+└── TIPO_GRUPO - Tipo de grupo
+
+3.3 INDISPONIBILIDADES
+-----------------------
+
+indisponibilidad
+├── ID_INDISPONIBILIDAD (PK) - Identificador único
+├── ID_PERSONA (FK) - Referencia a persona
+├── FECHA_INICIO - Fecha de inicio
+├── FECHA_FIN - Fecha de fin
+└── MOTIVO - Motivo de la indisponibilidad
+
+tipo_indisponibilidad
+├── ID_TIPO_INDISPONIBILIDAD (PK) - Identificador único
+└── TIPO_INDISPONIBILIDAD - Tipo de indisponibilidad
+
+3.4 DISTRITOS Y SISTEMAS
+-------------------------
+
+distritos_agentes
+├── ID_DISTRITO_AGENTE (PK) - Identificador único
+├── DISTRITO - Nombre del distrito
+└── [Otros campos del distrito]
+
+sistemas
+├── ID_SISTEMA (PK) - Identificador único
+├── NOMBRE_SISTEMA - Nombre del sistema
+└── [Otros campos del sistema]
+
+================================================================================
+4. RELACIONES PRINCIPALES
+================================================================================
+
+4.1 JERARQUÍA DE ÓRDENES DE SERVICIO
+-------------------------------------
+osgo_orden_servicio
+├── 1:N → osgo_detalle_orden_servicio
+├── 1:N → osgo_anexo
+├── 1:N → osgo_historial_horas
+└── N:1 → osgo_estado_orden
+
+4.2 JERARQUÍA DE ANEXOS
+------------------------
+osgo_anexo
+├── 1:N → osgo_anexo_detalle
+├── 1:N → osgo_anexo_recurso
+└── N:1 → osgo_orden_servicio
+
+4.3 CONTROL DE HORAS
+---------------------
+osgo_control_horas
+├── 1:N → osgo_historial_horas
+└── N:1 → personas
+
+4.4 RECURSOS Y ASIGNACIONES
+----------------------------
+osgo_recursos
+└── 1:N → osgo_anexo_recurso
+
+================================================================================
+5. ÍNDICES Y OPTIMIZACIONES
+================================================================================
+
+ÍNDICES PRINCIPALES:
+- osgo_orden_servicio.FECHA (para consultas por fecha)
+- osgo_orden_servicio.CREADO_POR (para consultas por usuario)
+- osgo_orden_servicio.ID_ESTADO_ORDEN (para filtros por estado)
+- osgo_control_horas.ID_PERSONA (para consultas por persona)
+- osgo_control_horas.ESTADO (para filtros por estado)
+- osgo_anexo.FECHA (para consultas por fecha)
+- osgo_anexo.ESTADO (para filtros por estado)
+- osgo_anexo.TIPO_ANEXO (para filtros por tipo)
+
+================================================================================
+6. DATOS DE CONFIGURACIÓN
+================================================================================
+
+6.1 ESTADOS DEL SISTEMA
+------------------------
+- Estados de Orden: 5 estados configurados
+- Estados de Control de Horas: 3 estados configurados
+- Estados de Anexos: 4 estados configurados
+
+6.2 HORARIOS PREDEFINIDOS
+--------------------------
+- 9 horarios diferentes configurados
+- Cobertura de 24 horas con diferentes turnos
+- Duración variable según necesidades operativas
+
+6.3 RECURSOS OPERATIVOS
+------------------------
+- 15 tipos de recursos diferentes
+- Categorías: Vehículos, Señalización, Comunicación, Seguridad
+- Unidades de medida estandarizadas
+
+6.4 SECTORES GEOGRÁFICOS
+-------------------------
+- 8 sectores configurados
+- Cobertura de Ibarra y Otavalo
+- Organización por distritos y cantones
+
+================================================================================
+7. INTEGRIDAD REFERENCIAL
+================================================================================
+
+RESTRICCIONES DE CLAVES FORÁNEAS:
+- osgo_orden_servicio.ID_ESTADO_ORDEN → osgo_estado_orden.ID_ESTADO_ORDEN
+- osgo_anexo.ID_ORDEN_SERVICIO → osgo_orden_servicio.ID_ORDEN_SERVICIO
+- osgo_anexo_detalle.ID_ANEXO → osgo_anexo.ID_ANEXO
+- osgo_anexo_recurso.ID_ANEXO → osgo_anexo.ID_ANEXO
+- osgo_anexo_recurso.ID_RECURSO → osgo_recursos.ID_RECURSO
+- osgo_control_horas.ID_PERSONA → personas.ID_PERSONA
+- osgo_historial_horas.ID_CONTROL_HORAS → osgo_control_horas.ID_CONTROL_HORAS
+- osgo_historial_horas.ID_ORDEN_SERVICIO → osgo_orden_servicio.ID_ORDEN_SERVICIO
+- osgo_detalle_orden_servicio.ID_ORDEN_SERVICIO → osgo_orden_servicio.ID_ORDEN_SERVICIO
+- osgo_detalle_orden_servicio.ID_FUNCION → funciones.ID_FUNCION
+
+================================================================================
+8. MIGRACIONES Y VERSIONADO
+================================================================================
+
+TOTAL DE MIGRACIONES: 28
+FECHA DE ÚLTIMA MIGRACIÓN: 2025-09-12
+
+MIGRACIONES PRINCIPALES:
+- Creación de tablas base del sistema
+- Normalización de estructura de datos
+- Implementación de claves foráneas
+- Optimización de índices
+- Limpieza de columnas duplicadas
+
+================================================================================
+9. SEEDERS Y DATOS INICIALES
+================================================================================
+
+SEEDERS CONFIGURADOS:
+- DatabaseSeeder: Seeder principal
+- HorariosSeeder: Carga horarios predefinidos
+- RecursosSeeder: Carga recursos operativos
+
+DATOS INICIALES CARGADOS:
+- 5 estados de orden
+- 9 horarios de trabajo
+- 15 recursos operativos
+- 8 sectores geográficos
+- 3 usuarios del sistema
+
+================================================================================
+10. RECOMENDACIONES DE MANTENIMIENTO
+================================================================================
+
+10.1 BACKUP REGULAR
+--------------------
+- Backup diario de tablas principales
+- Backup semanal completo
+- Backup antes de migraciones importantes
+
+10.2 OPTIMIZACIÓN
+------------------
+- Análisis mensual de rendimiento
+- Limpieza de registros históricos antiguos
+- Actualización de estadísticas de índices
+
+10.3 MONITOREO
+---------------
+- Monitoreo de espacio en disco
+- Seguimiento de consultas lentas
+- Control de integridad referencial
+
+================================================================================
+11. CONCLUSIONES
+================================================================================
+
+La base de datos OSGO está bien estructurada y optimizada para:
+- Gestión eficiente de órdenes de servicio
+- Control preciso de horas trabajadas
+- Administración completa de anexos
+- Gestión de recursos operativos
+- Seguimiento de personal y asignaciones
+
+El sistema mantiene integridad referencial y está preparado para:
+- Escalabilidad futura
+- Integración con otros sistemas
+- Reportes y análisis avanzados
+- Auditoría y trazabilidad completa
+
+================================================================================
+FIN DE LA DOCUMENTACIÓN
+================================================================================

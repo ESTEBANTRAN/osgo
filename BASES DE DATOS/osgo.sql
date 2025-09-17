@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 17-09-2025 a las 18:47:22
+-- Tiempo de generación: 17-09-2025 a las 21:20:54
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -43,57 +43,6 @@ CREATE TABLE `cache_locks` (
   `key` varchar(255) NOT NULL,
   `owner` varchar(255) NOT NULL,
   `expiration` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `failed_jobs`
---
-
-CREATE TABLE `failed_jobs` (
-  `id` bigint(20) UNSIGNED NOT NULL,
-  `uuid` varchar(255) NOT NULL,
-  `connection` text NOT NULL,
-  `queue` text NOT NULL,
-  `payload` longtext NOT NULL,
-  `exception` longtext NOT NULL,
-  `failed_at` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `jobs`
---
-
-CREATE TABLE `jobs` (
-  `id` bigint(20) UNSIGNED NOT NULL,
-  `queue` varchar(255) NOT NULL,
-  `payload` longtext NOT NULL,
-  `attempts` tinyint(3) UNSIGNED NOT NULL,
-  `reserved_at` int(10) UNSIGNED DEFAULT NULL,
-  `available_at` int(10) UNSIGNED NOT NULL,
-  `created_at` int(10) UNSIGNED NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `job_batches`
---
-
-CREATE TABLE `job_batches` (
-  `id` varchar(255) NOT NULL,
-  `name` varchar(255) NOT NULL,
-  `total_jobs` int(11) NOT NULL,
-  `pending_jobs` int(11) NOT NULL,
-  `failed_jobs` int(11) NOT NULL,
-  `failed_job_ids` longtext NOT NULL,
-  `options` mediumtext DEFAULT NULL,
-  `cancelled_at` int(11) DEFAULT NULL,
-  `created_at` int(11) NOT NULL,
-  `finished_at` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -214,6 +163,33 @@ CREATE TABLE `osgo_anexo_recurso` (
 -- --------------------------------------------------------
 
 --
+-- Estructura de tabla para la tabla `osgo_circuitos`
+--
+
+CREATE TABLE `osgo_circuitos` (
+  `ID_CIRCUITO` int(11) NOT NULL,
+  `NOMBRE_CIRCUITO` varchar(100) NOT NULL,
+  `DESCRIPCION` text DEFAULT NULL,
+  `ACTIVO` enum('SI','NO') DEFAULT 'SI'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Volcado de datos para la tabla `osgo_circuitos`
+--
+
+INSERT INTO `osgo_circuitos` (`ID_CIRCUITO`, `NOMBRE_CIRCUITO`, `DESCRIPCION`, `ACTIVO`) VALUES
+(1, 'CIRCUITO UNO', 'DESDE LA SANCHEZ Y CIFUENTES Y VELASCO, LA MERCED, LA GALLERA, MERCADO MAYORISTA, HUERTOS FAMILIARES, ALPACHACA, JARDIN DE PAZ, EL MILAGRO, PARQUE DE LA MILIER, REDONDLE DE AJAVI, MOVIDELNOR, EMELNORTE, AV. JAIME RIVADENEIRA', 'SI'),
+(2, 'CIRCUITO DOS', 'DESDE LA SANCHEZ Y CIFUENTES Y VELASCO, GAD IBARRA, PARQUE PEDRO MONCAYO, CALLE BOLIVAR, SUCRE, OLMEDO, UE SAN FRANCISCO, UTN, PUCESI, SECTOR LA CAT├ôLICA, SECTOR EL OLIVO, SECTOR DE PRIORATO, SECTOR DE YAHLUARCOCHA, BARRIO OLIVO ALTO, ARCANGEL', 'SI'),
+(3, 'CIRCUITO TRES', 'DESDE LA SANCHEZ Y CIFUENTES Y VELASCO, CALLES, OLMEDO, COL├ôN, AV. PEREZ GUERREZ, BOLIVAR, AV. TEODORO GOMEZ DE LA TORRES, AV. EL RETORNO, AV. ATAHUALPA, SUCRE, SECTOR DE LA ESPERANZA, SECTOR LOMA DE GUAYABILLAS, SECTOR ROMERILLO BAJO Y ALTO, SECTOR DE CARANQUIL', 'SI'),
+(4, 'CIRCUITO CUATRO', 'DESDE LA SANCHEZ Y CIFUENTES Y VELASCO, CALLES CHICA NARVAEZ, AV. MARIANO ACOSTA, AV. BUGENIO ESPEJO, AV. TEODORO GOMEZ, AV. CAMILO PONCE, PERIFERICO SUR, SECTOR DE CHORLAVI, SECTOR DE LA FLORIDA, CENTRO DE MATRICULACI├ôN, SECTOR LOS GALEANOS, SECTOR EJIDO DE CARAQUI, SECTOR DE TANGUARIN, SECTOR DE SAN ANTONIO', 'SI'),
+(5, 'CIRCUITO UNO', 'DESDE LA SANCHEZ Y CIFUENTES Y VELASCO, LA MERCED, LA GALLERA, MERCADO MAYORISTA, HUERTOS FAMILIARES, ALPACHACA, JARDIN DE PAZ, EL MILAGRO, PARQUE DE LA MILIER, REDONDLE DE AJAVI, MOVIDELNOR, EMELNORTE, AV. JAIME RIVADENEIRA', 'SI'),
+(6, 'CIRCUITO DOS', 'DESDE LA SANCHEZ Y CIFUENTES Y VELASCO, GAD IBARRA, PARQUE PEDRO MONCAYO, CALLE BOLIVAR, SUCRE, OLMEDO, UE SAN FRANCISCO, UTN, PUCESI, SECTOR LA CATÓLICA, SECTOR EL OLIVO, SECTOR DE PRIORATO, SECTOR DE YAHLUARCOCHA, BARRIO OLIVO ALTO, ARCANGEL', 'SI'),
+(7, 'CIRCUITO TRES', 'DESDE LA SANCHEZ Y CIFUENTES Y VELASCO, CALLES, OLMEDO, COLÓN, AV. PEREZ GUERREZ, BOLIVAR, AV. TEODORO GOMEZ DE LA TORRES, AV. EL RETORNO, AV. ATAHUALPA, SUCRE, SECTOR DE LA ESPERANZA, SECTOR LOMA DE GUAYABILLAS, SECTOR ROMERILLO BAJO Y ALTO, SECTOR DE CARANQUIL', 'SI'),
+(8, 'CIRCUITO CUATRO', 'DESDE LA SANCHEZ Y CIFUENTES Y VELASCO, CALLES CHICA NARVAEZ, AV. MARIANO ACOSTA, AV. BUGENIO ESPEJO, AV. TEODORO GOMEZ, AV. CAMILO PONCE, PERIFERICO SUR, SECTOR DE CHORLAVI, SECTOR DE LA FLORIDA, CENTRO DE MATRICULACIÓN, SECTOR LOS GALEANOS, SECTOR EJIDO DE CARAQUI, SECTOR DE TANGUARIN, SECTOR DE SAN ANTONIO', 'SI');
+
+-- --------------------------------------------------------
+
+--
 -- Estructura de tabla para la tabla `osgo_control_horas`
 --
 
@@ -265,6 +241,53 @@ CREATE TABLE `osgo_detalle_orden_servicio` (
 -- --------------------------------------------------------
 
 --
+-- Estructura de tabla para la tabla `osgo_disposiciones_generales`
+--
+
+CREATE TABLE `osgo_disposiciones_generales` (
+  `ID_DISPOSICION` int(11) NOT NULL,
+  `NUMERO_DISPOSICION` int(11) NOT NULL,
+  `TITULO` varchar(200) NOT NULL,
+  `CONTENIDO` text NOT NULL,
+  `CATEGORIA` enum('ACCIDENTES','OPERATIVOS','NORMATIVAS','ORDENES','MOTOCICLETAS','REPORTES','GENERAL') NOT NULL,
+  `ES_OBLIGATORIA` tinyint(1) DEFAULT 1,
+  `ACTIVO` tinyint(1) DEFAULT 1,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `osgo_disposiciones_generales`
+--
+
+INSERT INTO `osgo_disposiciones_generales` (`ID_DISPOSICION`, `NUMERO_DISPOSICION`, `TITULO`, `CONTENIDO`, `CATEGORIA`, `ES_OBLIGATORIA`, `ACTIVO`, `created_at`, `updated_at`) VALUES
+(1, 1, 'Procedimiento en caso de accidentes de tránsito', 'Para en caso de accidentes de tránsito, a los que acuden el cuerpo de agentes civiles de tránsito se dispone el env¡o inmediato y obligatorio del extracto una vez finalizado el procedimiento as¡ mismo la entrega del parte en f¡sico dentro de las 24 horas a la coordinadora de operaciones.', 'ACCIDENTES', 1, 1, '2025-09-17 17:31:49', '2025-09-17 19:16:22'),
+(2, 2, 'Facultades para ejecución de operativos de control', 'Sin perjuicio de la ejecución de operativos de control de tránsito, en sus distintas modalidades, cualquier miembro del cuerpo de agentes civiles de tránsito se encuentra facultado de acuerdo con las disposiciones normativas establecidas en la Constituci├│n y la Ley para ejecutar procedimientos de control de tránsito de acuerdo con cualquiera de los tipos contravencionales establecidos en el COIP.', 'OPERATIVOS', 1, 1, '2025-09-17 17:31:49', '2025-09-17 17:51:23'),
+(3, 3, 'Obediencia a órdenes superiores', 'De conformidad con las disposiciones y normativas establecidas en el COESCOP (ART.289#11) es obligaci├│n de los miembros del cuerpo de agentes civiles de tránsito obedecer las órdenes leg¡timas, verbales o escritas emitidas por su jefe inmediato superior.', 'NORMATIVAS', 1, 1, '2025-09-17 17:31:49', '2025-09-17 19:16:22'),
+(4, 4, 'Flexibilidad de órdenes de servicio', 'Las órdenes de servicio estÁn sujetas a cambios en horarios, intersecciones y otras disposiciones segÚn la necesidad y operatividad, raz├│n por la cual se deberÁ revisar la orden de servicio d¡a anterior a la fecha de trabajo del servidor ACT.', 'ORDENES', 1, 1, '2025-09-17 17:31:49', '2025-09-17 19:16:22'),
+(5, 5, 'Operativos de control de motocicletas', 'En atención con el memorando NRO. EPM-DDCT-2022-0859-M se dispone ejecutar operativos de control de motocicletas, en funci├│n a lo establecido en la normativa del art¡culo 160 del reglamento a la LOTTTSV; as¡ mismo se efectÚe operativos de control aquellas motocicletas con modificaciones que no cumplan las condiciones de homologaci├│n pertinente.', 'MOTOCICLETAS', 1, 1, '2025-09-17 17:31:49', '2025-09-17 19:16:22'),
+(6, 6, 'Reporte obligatorio al ECU 911', 'Los miembros del cuerpo de agentes civiles de tránsito deberÁ reportar al ECU.911 todo procedimiento que vayan a tomar con veh¡culos que cometa contravenci├│n en los diferentes sectores de la ciudad de Ibarra.', 'REPORTES', 1, 1, '2025-09-17 17:31:49', '2025-09-17 19:16:22'),
+(7, 7, 'Capacidad permitida en motocicletas', 'De acuerdo a la resolución NRO. 010-DIR-ANT-2022 reglamento que norma la capacidad permitida de personas que se transportan en motocicletas dentro del territorio nacional, el presente tipo contravencional forma parte del glosario de contravenciones de quinta clase, y sanciona a los conductores de motocicletas que transporten un nÚmero de personas superior a la capacidad permitida (se ha limitado su capacidad a una persona).', 'MOTOCICLETAS', 1, 1, '2025-09-17 17:31:49', '2025-09-17 19:16:22');
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `osgo_disposiciones_orden`
+--
+
+CREATE TABLE `osgo_disposiciones_orden` (
+  `ID_DISPOSICION_ORDEN` int(11) NOT NULL,
+  `ID_ORDEN_SERVICIO` int(11) NOT NULL,
+  `ID_DISPOSICION` int(11) NOT NULL,
+  `INCLUIDA` tinyint(1) DEFAULT 1,
+  `OBSERVACIONES` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Estructura de tabla para la tabla `osgo_estado_orden`
 --
 
@@ -287,6 +310,54 @@ INSERT INTO `osgo_estado_orden` (`ID_ESTADO_ORDEN`, `ESTADO_ORDEN`, `DESCRIPCION
 (6, 'Pendiente', 'Orden pendiente de atención'),
 (7, 'Pendiente', 'Orden pendiente de atención'),
 (8, 'Pendiente', 'Orden pendiente de atención');
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `osgo_grupos_operativos`
+--
+
+CREATE TABLE `osgo_grupos_operativos` (
+  `ID_GRUPO` int(11) NOT NULL,
+  `CODIGO_GRUPO` varchar(20) NOT NULL,
+  `NOMBRE_GRUPO` varchar(100) NOT NULL,
+  `TIPO_GRUPO` enum('MOTORIZADO','PEDESTRE','MOTOS') DEFAULT 'MOTORIZADO',
+  `ACTIVO` enum('SI','NO') DEFAULT 'SI'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Volcado de datos para la tabla `osgo_grupos_operativos`
+--
+
+INSERT INTO `osgo_grupos_operativos` (`ID_GRUPO`, `CODIGO_GRUPO`, `NOMBRE_GRUPO`, `TIPO_GRUPO`, `ACTIVO`) VALUES
+(1, 'GRUPO_A', 'GRUPO A', 'MOTORIZADO', 'SI'),
+(2, 'GRUPO_B', 'GRUPO B', 'MOTORIZADO', 'SI'),
+(3, 'GRUPO_C', 'GRUPO C', 'MOTORIZADO', 'SI'),
+(4, 'GRUPO_D', 'GRUPO D', 'MOTORIZADO', 'SI'),
+(5, 'GRUPO_E', 'GRUPO E', 'MOTORIZADO', 'SI'),
+(6, 'GRUPO_A_M', 'GRUPO A MOTORIZADO', 'MOTORIZADO', 'SI'),
+(7, 'GRUPO_B_M', 'GRUPO B MOTORIZADO', 'MOTORIZADO', 'SI'),
+(8, 'GRUPO_C_M', 'GRUPO C MOTORIZADO', 'MOTORIZADO', 'SI'),
+(9, 'GRUPO_A_MOTOS', 'GRUPO A MOTOS', 'MOTOS', 'SI'),
+(10, 'GRUPO_B_MOTOS', 'GRUPO B MOTOS', 'MOTOS', 'SI'),
+(11, 'GRUPO_C_MOTOS', 'GRUPO C MOTOS', 'MOTOS', 'SI'),
+(12, 'GA_PEDESTRE', 'GRUPO A PEDESTRE', 'PEDESTRE', 'SI'),
+(13, 'GB_PEDESTRE', 'GRUPO B PEDESTRE', 'PEDESTRE', 'SI'),
+(14, 'GC_PEDESTRE', 'GRUPO C PEDESTRE', 'PEDESTRE', 'SI'),
+(15, 'GRUPO_A', 'GRUPO A', 'MOTORIZADO', 'SI'),
+(16, 'GRUPO_B', 'GRUPO B', 'MOTORIZADO', 'SI'),
+(17, 'GRUPO_C', 'GRUPO C', 'MOTORIZADO', 'SI'),
+(18, 'GRUPO_D', 'GRUPO D', 'MOTORIZADO', 'SI'),
+(19, 'GRUPO_E', 'GRUPO E', 'MOTORIZADO', 'SI'),
+(20, 'GRUPO_A_M', 'GRUPO A MOTORIZADO', 'MOTORIZADO', 'SI'),
+(21, 'GRUPO_B_M', 'GRUPO B MOTORIZADO', 'MOTORIZADO', 'SI'),
+(22, 'GRUPO_C_M', 'GRUPO C MOTORIZADO', 'MOTORIZADO', 'SI'),
+(23, 'GRUPO_A_MOTOS', 'GRUPO A MOTOS', 'MOTOS', 'SI'),
+(24, 'GRUPO_B_MOTOS', 'GRUPO B MOTOS', 'MOTOS', 'SI'),
+(25, 'GRUPO_C_MOTOS', 'GRUPO C MOTOS', 'MOTOS', 'SI'),
+(26, 'GA_PEDESTRE', 'GRUPO A PEDESTRE', 'PEDESTRE', 'SI'),
+(27, 'GB_PEDESTRE', 'GRUPO B PEDESTRE', 'PEDESTRE', 'SI'),
+(28, 'GC_PEDESTRE', 'GRUPO C PEDESTRE', 'PEDESTRE', 'SI');
 
 -- --------------------------------------------------------
 
@@ -333,7 +404,47 @@ INSERT INTO `osgo_horarios` (`ID_HORARIO`, `NOMBRE`, `HORA_INICIO`, `HORA_FIN`, 
 (6, '12:00-20:00', 12, 20, '', 0, 'SI'),
 (7, '13:00-21:00', 13, 21, '', 0, 'SI'),
 (8, '14:00-20:00', 14, 20, '', 0, 'SI'),
-(9, '22:00-04:00', 22, 4, '', 0, 'SI');
+(9, '22:00-04:00', 22, 4, '', 0, 'SI'),
+(10, 'FRANCO', 0, 0, 'Día de franco', 0, 'SI');
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `osgo_novedades`
+--
+
+CREATE TABLE `osgo_novedades` (
+  `ID_NOVEDAD` int(11) NOT NULL,
+  `TIPO_NOVEDAD` varchar(50) NOT NULL,
+  `DESCRIPCION` text NOT NULL,
+  `ACTIVO` enum('SI','NO') DEFAULT 'SI'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Volcado de datos para la tabla `osgo_novedades`
+--
+
+INSERT INTO `osgo_novedades` (`ID_NOVEDAD`, `TIPO_NOVEDAD`, `DESCRIPCION`, `ACTIVO`) VALUES
+(1, 'CONTROL_TRANSPORTE', 'CONTROL DE TRANSPORTE INTER E INTRAPROVINCIAL EXECESO DE PASAJEROS, DOCUMENTOS HABILITANTES', 'SI'),
+(2, 'RETIRO_VEHICULOS', 'RETIRO DE VEHÍCULOS ESTACIONADOS EN SITIOS PROHIBIDOS', 'SI'),
+(3, 'CONTROL_INFORMALIDAD', 'CONTROL DE INFORMALIDAD EN EL SECTOR', 'SI'),
+(4, 'VERIFICAR_NOVEDADES', 'VERIFICAR Y RESOLVER NOVEDADES', 'SI'),
+(5, 'CUSTODIA_FERROCARRIL', 'CUSTODIA DEL FERROCARRIL EN TODO EL RECORRIDO', 'SI'),
+(6, 'CONTROL_ART_390_7', 'CONTROL DEL ART. 390.7 AL EXTERIOR DEL TERMINAL', 'SI'),
+(7, 'OPERATIVO_CONJUNTO', 'OPERATIVO CONJUNTO CONTROL DE ESPACIO P├ÜBLICO', 'SI'),
+(8, 'RETIRO_DOBLE_COLUMNA', 'RETIRO DE VEHÍCULOS DOBLE COLUMNA', 'SI'),
+(9, 'CONTROL_MOTOCICLETAS', 'CONTROL DE MOTOCICLETAS CON MODIFICACIONES NO COMPLIANTES', 'SI'),
+(10, 'VERIFICACION_PLACAS', 'VERIFICACIÓN DE PLACAS METÁLICAS Y PROVISIONALES', 'SI'),
+(11, 'CONTROL_TRANSPORTE', 'CONTROL DE TRANSPORTE INTER E INTRAPROVINCIAL EXECESO DE PASAJEROS, DOCUMENTOS HABILITANTES', 'SI'),
+(12, 'RETIRO_VEHICULOS', 'RETIRO DE VEHÍCULOS ESTACIONADOS EN SITIOS PROHIBIDOS', 'SI'),
+(13, 'CONTROL_INFORMALIDAD', 'CONTROL DE INFORMALIDAD EN EL SECTOR', 'SI'),
+(14, 'VERIFICAR_NOVEDADES', 'VERIFICAR Y RESOLVER NOVEDADES', 'SI'),
+(15, 'CUSTODIA_FERROCARRIL', 'CUSTODIA DEL FERROCARRIL EN TODO EL RECORRIDO', 'SI'),
+(16, 'CONTROL_ART_390_7', 'CONTROL DEL ART. 390.7 AL EXTERIOR DEL TERMINAL', 'SI'),
+(17, 'OPERATIVO_CONJUNTO', 'OPERATIVO CONJUNTO CONTROL DE ESPACIO PÚBLICO', 'SI'),
+(18, 'RETIRO_DOBLE_COLUMNA', 'RETIRO DE VEHÍCULOS DOBLE COLUMNA', 'SI'),
+(19, 'CONTROL_MOTOCICLETAS', 'CONTROL DE MOTOCICLETAS CON MODIFICACIONES NO COMPLIANTES', 'SI'),
+(20, 'VERIFICACION_PLACAS', 'VERIFICACIÓN DE PLACAS METÁLICAS Y PROVISIONALES', 'SI');
 
 -- --------------------------------------------------------
 
@@ -352,6 +463,13 @@ CREATE TABLE `osgo_orden_servicio` (
   `ID_ESTADO_ORDEN` int(11) DEFAULT NULL,
   `FECHA_ACTUAL` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `osgo_orden_servicio`
+--
+
+INSERT INTO `osgo_orden_servicio` (`ID_ORDEN_SERVICIO`, `NRO_ORDEN`, `FECHA`, `DISTRITO`, `PROVINCIA`, `CIUDAD`, `CREADO_POR`, `ID_ESTADO_ORDEN`, `FECHA_ACTUAL`) VALUES
+(2, '99', '2025-09-24', '', NULL, NULL, NULL, 1, '2025-09-17 18:35:51');
 
 -- --------------------------------------------------------
 
@@ -437,25 +555,48 @@ INSERT INTO `osgo_roles` (`ID`, `NOMBRE`, `DESCRIPCION`, `ACTIVO`, `CREATED_AT`,
 
 CREATE TABLE `osgo_sectores` (
   `ID_SECTOR` int(11) NOT NULL,
-  `SECTOR` varchar(100) DEFAULT NULL,
-  `DISTRITO` varchar(100) DEFAULT NULL,
-  `CANTON` varchar(100) DEFAULT NULL,
-  `ACTIVO` char(2) DEFAULT 'S'
+  `NOMBRE_SECTOR` varchar(200) NOT NULL,
+  `DESCRIPCION` text DEFAULT NULL,
+  `CIRCUITO_ID` int(11) DEFAULT NULL,
+  `ACTIVO` enum('SI','NO') DEFAULT 'SI'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Volcado de datos para la tabla `osgo_sectores`
 --
 
-INSERT INTO `osgo_sectores` (`ID_SECTOR`, `SECTOR`, `DISTRITO`, `CANTON`, `ACTIVO`) VALUES
-(1, 'Ibarra Centro', 'Ibarra', 'Ibarra', 'S'),
-(2, 'Ibarra Norte', 'Ibarra', 'Ibarra', 'S'),
-(3, 'Ibarra Sur', 'Ibarra', 'Ibarra', 'S'),
-(4, 'Ibarra Este', 'Ibarra', 'Ibarra', 'S'),
-(5, 'Ibarra Oeste', 'Ibarra', 'Ibarra', 'S'),
-(6, 'Otavalo Centro', 'Otavalo', 'Otavalo', 'S'),
-(7, 'Otavalo Norte', 'Otavalo', 'Otavalo', 'S'),
-(8, 'Otavalo Sur', 'Otavalo', 'Otavalo', 'S');
+INSERT INTO `osgo_sectores` (`ID_SECTOR`, `NOMBRE_SECTOR`, `DESCRIPCION`, `CIRCUITO_ID`, `ACTIVO`) VALUES
+(1, 'MERCADO MAYORISTA', 'CONTROL EN MERCADO MAYORISTA', 1, 'SI'),
+(2, 'HOSPITAL SAN VICENTE', 'RETIRO DE VEHÍCULOS EN EXTERIORES DEL HOSPITAL', 1, 'SI'),
+(3, 'GAD IBARRA', 'CONTROL EN GAD IBARRA', 2, 'SI'),
+(4, 'PARQUE PEDRO MONCAYO', 'CONTROL EN PARQUE PEDRO MONCAYO', 2, 'SI'),
+(5, 'TERMINAL DE TRANSPORTE', 'CONTROL EN TERMINAL DE TRANSPORTE', 3, 'SI'),
+(6, 'AV. EL RETORNO', 'CONTROL EN AV. EL RETORNO', 3, 'SI'),
+(7, 'CENTRO DE MATRICULACIÓN', 'CONTROL EN CENTRO DE MATRICULACIÓN', 4, 'SI'),
+(8, 'PERIFERICO SUR', 'CONTROL EN PERIFERICO SUR', 4, 'SI');
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `osgo_servicios_orden`
+--
+
+CREATE TABLE `osgo_servicios_orden` (
+  `ID_SERVICIO_ORDEN` int(11) NOT NULL,
+  `ID_ORDEN_SERVICIO` int(11) NOT NULL,
+  `ID_TIPO_SERVICIO` int(11) NOT NULL,
+  `HORARIO` varchar(50) DEFAULT NULL,
+  `PLACA_VEHICULO` varchar(20) DEFAULT NULL,
+  `GRUPO_ASIGNADO` varchar(30) DEFAULT NULL,
+  `RESPONSABLE` varchar(100) DEFAULT NULL,
+  `CODIGO_RESPONSABLE` varchar(20) DEFAULT NULL,
+  `SECTOR_DESCRIPCION` text DEFAULT NULL,
+  `NOVEDADES` text DEFAULT NULL,
+  `OBSERVACIONES` text DEFAULT NULL,
+  `ACTIVO` tinyint(1) DEFAULT 1,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -469,6 +610,42 @@ CREATE TABLE `osgo_servicio_grua` (
   `CONTRATO` varchar(20) DEFAULT NULL,
   `TELEFONO` varchar(20) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `osgo_tipos_servicio`
+--
+
+CREATE TABLE `osgo_tipos_servicio` (
+  `ID_TIPO_SERVICIO` int(11) NOT NULL,
+  `TIPO_SERVICIO` varchar(50) NOT NULL,
+  `DESCRIPCION` text DEFAULT NULL,
+  `CATEGORIA` enum('MOTORIZADO','PEDESTRE','GRUA','ESPECIAL','MERCADO') NOT NULL,
+  `REQUIERE_VEHICULO` tinyint(1) DEFAULT 0,
+  `REQUIERE_HORARIO` tinyint(1) DEFAULT 1,
+  `REQUIERE_SECTOR` tinyint(1) DEFAULT 1,
+  `ACTIVO` tinyint(1) DEFAULT 1,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `osgo_tipos_servicio`
+--
+
+INSERT INTO `osgo_tipos_servicio` (`ID_TIPO_SERVICIO`, `TIPO_SERVICIO`, `DESCRIPCION`, `CATEGORIA`, `REQUIERE_VEHICULO`, `REQUIERE_HORARIO`, `REQUIERE_SECTOR`, `ACTIVO`, `created_at`, `updated_at`) VALUES
+(1, 'SERVICIO MOTORIZADO', 'Servicio de patrullaje en motocicleta con circuitos espec¡ficos', 'MOTORIZADO', 1, 1, 1, 1, '2025-09-17 17:31:49', '2025-09-17 19:16:22'),
+(2, 'SERVICIO MOTORIZADO FRANCO', 'Personal motorizado en d¡a franco disponible para emergencias', 'MOTORIZADO', 1, 1, 0, 1, '2025-09-17 17:31:49', '2025-09-17 19:16:22'),
+(3, 'SERVICIO PEDESTRE', 'Servicio de control de tránsito a pie en intersecciones', 'PEDESTRE', 0, 1, 1, 1, '2025-09-17 17:31:49', '2025-09-17 17:51:23'),
+(4, 'SERVICIO PEDESTRE FRANCO', 'Personal pedestre en d¡a franco para apoyo', 'PEDESTRE', 0, 1, 0, 1, '2025-09-17 17:31:49', '2025-09-17 19:16:22'),
+(5, 'SERVICIOS PEDESTRE', 'Servicios mÚltiples de control pedestre', 'PEDESTRE', 0, 1, 1, 1, '2025-09-17 17:31:49', '2025-09-17 19:16:22'),
+(6, 'SERVICIO DE GRÚA PARTICULAR', 'Servicio de grÚa contratada en caso de no disponer grÚas de la empresa', 'GRUA', 1, 1, 0, 1, '2025-09-17 17:31:49', '2025-09-17 19:16:22'),
+(7, 'SERVICIO MERCADO MAYORISTA', 'Servicio especial para control en mercado mayorista', 'MERCADO', 0, 1, 1, 1, '2025-09-17 17:31:49', '2025-09-17 17:31:49'),
+(8, 'SERVICIO DESDE LAS 16:15', 'Servicio especial con horario espec¡fico', 'ESPECIAL', 0, 1, 1, 1, '2025-09-17 17:31:49', '2025-09-17 19:16:22'),
+(9, 'SERVICIO CONTROL INTERPROVINCIALES', 'Control espec¡fico de buses interprovinciales', 'ESPECIAL', 0, 1, 1, 1, '2025-09-17 17:31:49', '2025-09-17 19:16:22'),
+(10, 'SERVICIO CONTROL SEMÁFORO', 'Control espec¡fico en semÁforos', 'ESPECIAL', 0, 1, 1, 1, '2025-09-17 17:31:49', '2025-09-17 19:16:22'),
+(12, 'SERVICIOS PEDESTRE FRANCO', 'Servicio pedestre en horario de franco', 'PEDESTRE', 0, 1, 0, 1, '2025-09-17 18:05:52', '2025-09-17 18:05:52');
 
 -- --------------------------------------------------------
 
@@ -520,6 +697,21 @@ CREATE TABLE `osgo_vehiculo` (
   `ACTIVO` varchar(2) DEFAULT 'A'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Volcado de datos para la tabla `osgo_vehiculo`
+--
+
+INSERT INTO `osgo_vehiculo` (`ID_VEHICULO`, `PLACA`, `ACTIVO`) VALUES
+(1, '01-2024-EPM', 'SI'),
+(2, '09-2024-EPM', 'SI'),
+(3, '04-2024-EPM', 'SI'),
+(4, '10-2024-EPM', 'SI'),
+(5, '07-2024-EPM', 'SI'),
+(6, '11-2024-EPM', 'SI'),
+(7, '03-2024-EPM', 'SI'),
+(8, '12-2024-EPM', 'SI'),
+(9, '08-2024-EPM', 'SI');
+
 -- --------------------------------------------------------
 
 --
@@ -564,26 +756,6 @@ ALTER TABLE `cache_locks`
   ADD PRIMARY KEY (`key`);
 
 --
--- Indices de la tabla `failed_jobs`
---
-ALTER TABLE `failed_jobs`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `failed_jobs_uuid_unique` (`uuid`);
-
---
--- Indices de la tabla `jobs`
---
-ALTER TABLE `jobs`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `jobs_queue_index` (`queue`);
-
---
--- Indices de la tabla `job_batches`
---
-ALTER TABLE `job_batches`
-  ADD PRIMARY KEY (`id`);
-
---
 -- Indices de la tabla `migrations`
 --
 ALTER TABLE `migrations`
@@ -608,6 +780,12 @@ ALTER TABLE `osgo_anexo_recurso`
   ADD PRIMARY KEY (`ID_ANEXO_RECURSO`);
 
 --
+-- Indices de la tabla `osgo_circuitos`
+--
+ALTER TABLE `osgo_circuitos`
+  ADD PRIMARY KEY (`ID_CIRCUITO`);
+
+--
 -- Indices de la tabla `osgo_control_horas`
 --
 ALTER TABLE `osgo_control_horas`
@@ -626,10 +804,30 @@ ALTER TABLE `osgo_detalle_orden_servicio`
   ADD PRIMARY KEY (`ID_DET_ORDEN_SERVICIO`);
 
 --
+-- Indices de la tabla `osgo_disposiciones_generales`
+--
+ALTER TABLE `osgo_disposiciones_generales`
+  ADD PRIMARY KEY (`ID_DISPOSICION`);
+
+--
+-- Indices de la tabla `osgo_disposiciones_orden`
+--
+ALTER TABLE `osgo_disposiciones_orden`
+  ADD PRIMARY KEY (`ID_DISPOSICION_ORDEN`),
+  ADD KEY `ID_ORDEN_SERVICIO` (`ID_ORDEN_SERVICIO`),
+  ADD KEY `ID_DISPOSICION` (`ID_DISPOSICION`);
+
+--
 -- Indices de la tabla `osgo_estado_orden`
 --
 ALTER TABLE `osgo_estado_orden`
   ADD PRIMARY KEY (`ID_ESTADO_ORDEN`);
+
+--
+-- Indices de la tabla `osgo_grupos_operativos`
+--
+ALTER TABLE `osgo_grupos_operativos`
+  ADD PRIMARY KEY (`ID_GRUPO`);
 
 --
 -- Indices de la tabla `osgo_historial_horas`
@@ -642,6 +840,12 @@ ALTER TABLE `osgo_historial_horas`
 --
 ALTER TABLE `osgo_horarios`
   ADD PRIMARY KEY (`ID_HORARIO`);
+
+--
+-- Indices de la tabla `osgo_novedades`
+--
+ALTER TABLE `osgo_novedades`
+  ADD PRIMARY KEY (`ID_NOVEDAD`);
 
 --
 -- Indices de la tabla `osgo_orden_servicio`
@@ -672,13 +876,28 @@ ALTER TABLE `osgo_roles`
 -- Indices de la tabla `osgo_sectores`
 --
 ALTER TABLE `osgo_sectores`
-  ADD PRIMARY KEY (`ID_SECTOR`);
+  ADD PRIMARY KEY (`ID_SECTOR`),
+  ADD KEY `FK_sector_circuito` (`CIRCUITO_ID`);
+
+--
+-- Indices de la tabla `osgo_servicios_orden`
+--
+ALTER TABLE `osgo_servicios_orden`
+  ADD PRIMARY KEY (`ID_SERVICIO_ORDEN`),
+  ADD KEY `ID_ORDEN_SERVICIO` (`ID_ORDEN_SERVICIO`),
+  ADD KEY `ID_TIPO_SERVICIO` (`ID_TIPO_SERVICIO`);
 
 --
 -- Indices de la tabla `osgo_servicio_grua`
 --
 ALTER TABLE `osgo_servicio_grua`
   ADD PRIMARY KEY (`ID_SERVICIO_GRUA`);
+
+--
+-- Indices de la tabla `osgo_tipos_servicio`
+--
+ALTER TABLE `osgo_tipos_servicio`
+  ADD PRIMARY KEY (`ID_TIPO_SERVICIO`);
 
 --
 -- Indices de la tabla `osgo_tipo_vehiculo`
@@ -719,18 +938,6 @@ ALTER TABLE `sessions`
 --
 
 --
--- AUTO_INCREMENT de la tabla `failed_jobs`
---
-ALTER TABLE `failed_jobs`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT de la tabla `jobs`
---
-ALTER TABLE `jobs`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
-
---
 -- AUTO_INCREMENT de la tabla `migrations`
 --
 ALTER TABLE `migrations`
@@ -755,6 +962,12 @@ ALTER TABLE `osgo_anexo_recurso`
   MODIFY `ID_ANEXO_RECURSO` int(11) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT de la tabla `osgo_circuitos`
+--
+ALTER TABLE `osgo_circuitos`
+  MODIFY `ID_CIRCUITO` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+
+--
 -- AUTO_INCREMENT de la tabla `osgo_control_horas`
 --
 ALTER TABLE `osgo_control_horas`
@@ -773,10 +986,28 @@ ALTER TABLE `osgo_detalle_orden_servicio`
   MODIFY `ID_DET_ORDEN_SERVICIO` int(11) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT de la tabla `osgo_disposiciones_generales`
+--
+ALTER TABLE `osgo_disposiciones_generales`
+  MODIFY `ID_DISPOSICION` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+
+--
+-- AUTO_INCREMENT de la tabla `osgo_disposiciones_orden`
+--
+ALTER TABLE `osgo_disposiciones_orden`
+  MODIFY `ID_DISPOSICION_ORDEN` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT de la tabla `osgo_estado_orden`
 --
 ALTER TABLE `osgo_estado_orden`
   MODIFY `ID_ESTADO_ORDEN` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+
+--
+-- AUTO_INCREMENT de la tabla `osgo_grupos_operativos`
+--
+ALTER TABLE `osgo_grupos_operativos`
+  MODIFY `ID_GRUPO` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
 
 --
 -- AUTO_INCREMENT de la tabla `osgo_historial_horas`
@@ -788,13 +1019,19 @@ ALTER TABLE `osgo_historial_horas`
 -- AUTO_INCREMENT de la tabla `osgo_horarios`
 --
 ALTER TABLE `osgo_horarios`
-  MODIFY `ID_HORARIO` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `ID_HORARIO` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+
+--
+-- AUTO_INCREMENT de la tabla `osgo_novedades`
+--
+ALTER TABLE `osgo_novedades`
+  MODIFY `ID_NOVEDAD` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- AUTO_INCREMENT de la tabla `osgo_orden_servicio`
 --
 ALTER TABLE `osgo_orden_servicio`
-  MODIFY `ID_ORDEN_SERVICIO` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `ID_ORDEN_SERVICIO` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT de la tabla `osgo_orden_servicio_grua`
@@ -821,10 +1058,22 @@ ALTER TABLE `osgo_sectores`
   MODIFY `ID_SECTOR` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
+-- AUTO_INCREMENT de la tabla `osgo_servicios_orden`
+--
+ALTER TABLE `osgo_servicios_orden`
+  MODIFY `ID_SERVICIO_ORDEN` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT de la tabla `osgo_servicio_grua`
 --
 ALTER TABLE `osgo_servicio_grua`
   MODIFY `ID_SERVICIO_GRUA` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT de la tabla `osgo_tipos_servicio`
+--
+ALTER TABLE `osgo_tipos_servicio`
+  MODIFY `ID_TIPO_SERVICIO` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT de la tabla `osgo_tipo_vehiculo`
@@ -842,11 +1091,31 @@ ALTER TABLE `osgo_users`
 -- AUTO_INCREMENT de la tabla `osgo_vehiculo`
 --
 ALTER TABLE `osgo_vehiculo`
-  MODIFY `ID_VEHICULO` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `ID_VEHICULO` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- Restricciones para tablas volcadas
 --
+
+--
+-- Filtros para la tabla `osgo_disposiciones_orden`
+--
+ALTER TABLE `osgo_disposiciones_orden`
+  ADD CONSTRAINT `osgo_disposiciones_orden_ibfk_1` FOREIGN KEY (`ID_ORDEN_SERVICIO`) REFERENCES `osgo_orden_servicio` (`ID_ORDEN_SERVICIO`) ON DELETE CASCADE,
+  ADD CONSTRAINT `osgo_disposiciones_orden_ibfk_2` FOREIGN KEY (`ID_DISPOSICION`) REFERENCES `osgo_disposiciones_generales` (`ID_DISPOSICION`);
+
+--
+-- Filtros para la tabla `osgo_sectores`
+--
+ALTER TABLE `osgo_sectores`
+  ADD CONSTRAINT `FK_sector_circuito` FOREIGN KEY (`CIRCUITO_ID`) REFERENCES `osgo_circuitos` (`ID_CIRCUITO`);
+
+--
+-- Filtros para la tabla `osgo_servicios_orden`
+--
+ALTER TABLE `osgo_servicios_orden`
+  ADD CONSTRAINT `osgo_servicios_orden_ibfk_1` FOREIGN KEY (`ID_ORDEN_SERVICIO`) REFERENCES `osgo_orden_servicio` (`ID_ORDEN_SERVICIO`) ON DELETE CASCADE,
+  ADD CONSTRAINT `osgo_servicios_orden_ibfk_2` FOREIGN KEY (`ID_TIPO_SERVICIO`) REFERENCES `osgo_tipos_servicio` (`ID_TIPO_SERVICIO`);
 
 --
 -- Filtros para la tabla `osgo_users`

@@ -68,10 +68,10 @@ class OrdenServicioResource extends Resource
         // Optimización: Cache las funciones para evitar consultas repetidas
         $funciones = cache()->remember('funciones_orden_servicio', 3600, function() use ($ids) {
             return \App\Models\Funcione::query()
-                ->whereIn('ID_FUNCION', $ids)
-                ->orderByRaw('FIELD(ID_FUNCION, ' . implode(',', $ids) . ')')
-                ->pluck('FUNCION', 'ID_FUNCION')
-                ->toArray();
+            ->whereIn('ID_FUNCION', $ids)
+            ->orderByRaw('FIELD(ID_FUNCION, ' . implode(',', $ids) . ')')
+            ->pluck('FUNCION', 'ID_FUNCION')
+            ->toArray();
         });
 
         // Optimización: Pre-cargar todas las opciones de personas por función usando vistas
@@ -128,14 +128,26 @@ class OrdenServicioResource extends Resource
                                             ->schema([
                                                 Grid::make(2)
                                                     ->schema([
-                                                        TextInput::make('CREADO_POR')
+                                                        Select::make('CREADO_POR')
                                                             ->label('Responsable Operativo')
-                                                            ->default(fn() => Auth::user()->name)
-                                                            ->disabled()
-                                                            ->helperText('Nombre completo de quien firma la orden.')
+                                                            ->options(function() {
+                                                                return DB::connection('sistema_principal')
+                                                                    ->table('v_personas_disponibles')
+                                                                    ->select('ID_PERSONA', 'CODIGO_AGENTE', 'NOMBRE_COMPLETO')
+                                                                    ->get()
+                                                                    ->mapWithKeys(function($item) {
+                                                                        return [$item->ID_PERSONA => $item->CODIGO_AGENTE . ' - ' . $item->NOMBRE_COMPLETO];
+                                                                    })
+                                                                    ->toArray();
+                                                            })
+                                                            ->default(fn() => Auth::user()->persona?->ID_PERSONA)
+                                                            ->searchable()
+                                                            ->preload()
+                                                            ->required()
+                                                            ->helperText('Seleccione el responsable operativo de la lista parametrizada.')
                                                             ->validationAttribute('Responsable Operativo')
                                                             ->validationMessages([
-                                                                'required' => 'El campo Responsable Operativc es obligatorio.',
+                                                                'required' => 'El campo Responsable Operativo es obligatorio.',
                                                             ]),
 
                                                         Placeholder::make('NRO_ORDEN')
@@ -181,13 +193,13 @@ class OrdenServicioResource extends Resource
                                                             ->reactive()                      // para disparar afterStateUpdated
                                                             ->afterStateHydrated(function ($state, callable $set, $record) {
                                                                 if ($record) {
-                                                                    $set('distrito_canton', "{$record->DISTRITO} - {$record->CANTON}");
+                                                                    $set('distrito_canton', "{$record->DISTRITO} - {$record->PROVINCIA}");
                                                                 }
                                                             })
                                                             ->afterStateUpdated(function (string $state, callable $set) {
                                                                 [$distrito, $canton] = explode(' - ', $state, 2);
                                                                 $set('DISTRITO', $distrito);
-                                                                $set('CANTON', $canton);
+                                                                $set('PROVINCIA', $canton); // Mapeamos CANTON a PROVINCIA en la BD
                                                             })
                                                             ->searchable()
                                                             ->required()
@@ -198,7 +210,7 @@ class OrdenServicioResource extends Resource
                                                             ->dehydrated()                     // sí se mapea
                                                             ->default(fn(callable $get) => explode(' - ', $get('distrito_canton') ?? '', 2)[0] ?? ''),
 
-                                                        Hidden::make('CANTON')
+                                                        Hidden::make('PROVINCIA')
                                                             ->required()
                                                             ->dehydrated()
                                                             ->default(fn(callable $get) => explode(' - ', $get('distrito_canton') ?? '', 2)[1] ?? ''),
@@ -448,13 +460,19 @@ class OrdenServicioResource extends Resource
                                                         /* Responsable filtrado por función */
                                                         Select::make('responsable_id')
                                                             ->label('Responsable')
-                                                            ->options(fn(callable $get) => [
-                                                                'S/S' => 'S/S',
-                                                            ] + (
-                                                                $get('funcion_id')
-                                                                ? \App\Models\Persona::opcionesPorFuncion($get('funcion_id'))
-                                                                : []
-                                                            ))
+                                                            ->options(function() {
+                                                                return DB::connection('sistema_principal')
+                                                                    ->table('v_personas_disponibles')
+                                                                    ->select('ID_PERSONA', 'CODIGO_AGENTE', 'NOMBRE_COMPLETO')
+                                                                    ->get()
+                                                                    ->mapWithKeys(function($item) {
+                                                                        return [$item->ID_PERSONA => $item->CODIGO_AGENTE . ' - ' . $item->NOMBRE_COMPLETO];
+                                                                    })
+                                                                    ->toArray();
+                                                            })
+                                                            ->searchable()
+                                                            ->preload()
+                                                            ->required()
                                                             ->searchable()
                                                             ->preload()
                                                             ->required()
@@ -509,15 +527,16 @@ class OrdenServicioResource extends Resource
                                                         // Usuario sólo elige responsable, filtrado por función fija
                                                         Select::make('responsable_id')
                                                             ->label('Responsable')
-                                                            ->options(
-                                                                fn(callable $get) =>
-                                                                ['S/S' => 'S/S']
-                                                                    + (
-                                                                        $get('funcion_id')
-                                                                        ? Persona::opcionesPorFuncion($get('funcion_id'))
-                                                                        : []
-                                                                    )
-                                                            )
+                                                            ->options(function() {
+                                                                return DB::connection('sistema_principal')
+                                                                    ->table('v_personas_disponibles')
+                                                                    ->select('ID_PERSONA', 'CODIGO_AGENTE', 'NOMBRE_COMPLETO')
+                                                                    ->get()
+                                                                    ->mapWithKeys(function($item) {
+                                                                        return [$item->ID_PERSONA => $item->CODIGO_AGENTE . ' - ' . $item->NOMBRE_COMPLETO];
+                                                                    })
+                                                                    ->toArray();
+                                                            })
                                                             ->searchable()
                                                             ->preload()
                                                             ->required()
@@ -571,13 +590,16 @@ class OrdenServicioResource extends Resource
 
                                                         Select::make('responsable_id')
                                                             ->label('Responsable')
-                                                            ->options(fn(callable $get) => [
-                                                                'S/S' => 'S/S',
-                                                            ] + (
-                                                                $get('funcion_id')
-                                                                ? \App\Models\Persona::opcionesPorFuncion($get('funcion_id'))
-                                                                : []
-                                                            ))
+                                                            ->options(function() {
+                                                                return DB::connection('sistema_principal')
+                                                                    ->table('v_personas_disponibles')
+                                                                    ->select('ID_PERSONA', 'CODIGO_AGENTE', 'NOMBRE_COMPLETO')
+                                                                    ->get()
+                                                                    ->mapWithKeys(function($item) {
+                                                                        return [$item->ID_PERSONA => $item->CODIGO_AGENTE . ' - ' . $item->NOMBRE_COMPLETO];
+                                                                    })
+                                                                    ->toArray();
+                                                            })
                                                             ->searchable()
                                                             ->preload()
                                                             ->required(),
@@ -631,13 +653,16 @@ class OrdenServicioResource extends Resource
 
                                                         Select::make('responsable_id')
                                                             ->label('Responsable')
-                                                            ->options(fn(callable $get) => [
-                                                                'S/S' => 'S/S',
-                                                            ] + (
-                                                                $get('funcion_id')
-                                                                ? \App\Models\Persona::opcionesPorFuncion($get('funcion_id'))
-                                                                : []
-                                                            ))
+                                                            ->options(function() {
+                                                                return DB::connection('sistema_principal')
+                                                                    ->table('v_personas_disponibles')
+                                                                    ->select('ID_PERSONA', 'CODIGO_AGENTE', 'NOMBRE_COMPLETO')
+                                                                    ->get()
+                                                                    ->mapWithKeys(function($item) {
+                                                                        return [$item->ID_PERSONA => $item->CODIGO_AGENTE . ' - ' . $item->NOMBRE_COMPLETO];
+                                                                    })
+                                                                    ->toArray();
+                                                            })
                                                             ->searchable()
                                                             ->preload()
                                                             ->required(),
@@ -689,13 +714,16 @@ class OrdenServicioResource extends Resource
 
                                                         Select::make('responsable_id')
                                                             ->label('Responsable')
-                                                            ->options(fn(callable $get) => [
-                                                                'S/S' => 'S/S',
-                                                            ] + (
-                                                                $get('funcion_id')
-                                                                ? \App\Models\Persona::opcionesPorFuncion($get('funcion_id'))
-                                                                : []
-                                                            ))
+                                                            ->options(function() {
+                                                                return DB::connection('sistema_principal')
+                                                                    ->table('v_personas_disponibles')
+                                                                    ->select('ID_PERSONA', 'CODIGO_AGENTE', 'NOMBRE_COMPLETO')
+                                                                    ->get()
+                                                                    ->mapWithKeys(function($item) {
+                                                                        return [$item->ID_PERSONA => $item->CODIGO_AGENTE . ' - ' . $item->NOMBRE_COMPLETO];
+                                                                    })
+                                                                    ->toArray();
+                                                            })
                                                             ->searchable()
                                                             ->preload()
                                                             ->required(),
@@ -749,11 +777,16 @@ class OrdenServicioResource extends Resource
 
                                                         Select::make('responsable_id')
                                                             ->label('Responsable')
-                                                            ->options(fn(callable $get) => [
-                                                                'S/S' => 'S/S',
-                                                            ] + (
-                                                                \App\Models\Persona::opcionesPorFuncion($get('funcion_id'))
-                                                            ))
+                                                            ->options(function() {
+                                                                return DB::connection('sistema_principal')
+                                                                    ->table('v_personas_disponibles')
+                                                                    ->select('ID_PERSONA', 'CODIGO_AGENTE', 'NOMBRE_COMPLETO')
+                                                                    ->get()
+                                                                    ->mapWithKeys(function($item) {
+                                                                        return [$item->ID_PERSONA => $item->CODIGO_AGENTE . ' - ' . $item->NOMBRE_COMPLETO];
+                                                                    })
+                                                                    ->toArray();
+                                                            })
                                                             ->searchable()
                                                             ->preload()
                                                             ->required(),
@@ -807,11 +840,16 @@ class OrdenServicioResource extends Resource
 
                                                         Select::make('responsable_id')
                                                             ->label('Responsable')
-                                                            ->options(fn(callable $get) => [
-                                                                'S/S' => 'S/S',
-                                                            ] + (
-                                                                \App\Models\Persona::opcionesPorFuncion($get('funcion_id'))
-                                                            ))
+                                                            ->options(function() {
+                                                                return DB::connection('sistema_principal')
+                                                                    ->table('v_personas_disponibles')
+                                                                    ->select('ID_PERSONA', 'CODIGO_AGENTE', 'NOMBRE_COMPLETO')
+                                                                    ->get()
+                                                                    ->mapWithKeys(function($item) {
+                                                                        return [$item->ID_PERSONA => $item->CODIGO_AGENTE . ' - ' . $item->NOMBRE_COMPLETO];
+                                                                    })
+                                                                    ->toArray();
+                                                            })
                                                             ->searchable()
                                                             ->preload()
                                                             ->required(),
@@ -864,11 +902,16 @@ class OrdenServicioResource extends Resource
 
                                                         Select::make('responsable_id')
                                                             ->label('Responsable')
-                                                            ->options(fn(callable $get) => [
-                                                                'S/S' => 'S/S',
-                                                            ] + (
-                                                                \App\Models\Persona::opcionesPorFuncion($get('funcion_id'))
-                                                            ))
+                                                            ->options(function() {
+                                                                return DB::connection('sistema_principal')
+                                                                    ->table('v_personas_disponibles')
+                                                                    ->select('ID_PERSONA', 'CODIGO_AGENTE', 'NOMBRE_COMPLETO')
+                                                                    ->get()
+                                                                    ->mapWithKeys(function($item) {
+                                                                        return [$item->ID_PERSONA => $item->CODIGO_AGENTE . ' - ' . $item->NOMBRE_COMPLETO];
+                                                                    })
+                                                                    ->toArray();
+                                                            })
                                                             ->searchable()
                                                             ->preload()
                                                             ->required(),
@@ -918,11 +961,16 @@ class OrdenServicioResource extends Resource
 
                                                         Select::make('responsable_id')
                                                             ->label('Responsable')
-                                                            ->options(fn(callable $get) => [
-                                                                'S/S' => 'S/S',
-                                                            ] + (
-                                                                \App\Models\Persona::opcionesPorFuncion($get('funcion_id'))
-                                                            ))
+                                                            ->options(function() {
+                                                                return DB::connection('sistema_principal')
+                                                                    ->table('v_personas_disponibles')
+                                                                    ->select('ID_PERSONA', 'CODIGO_AGENTE', 'NOMBRE_COMPLETO')
+                                                                    ->get()
+                                                                    ->mapWithKeys(function($item) {
+                                                                        return [$item->ID_PERSONA => $item->CODIGO_AGENTE . ' - ' . $item->NOMBRE_COMPLETO];
+                                                                    })
+                                                                    ->toArray();
+                                                            })
                                                             ->searchable()
                                                             ->preload()
                                                             ->required(),
@@ -973,11 +1021,16 @@ class OrdenServicioResource extends Resource
 
                                                         Select::make('responsable_id')
                                                             ->label('Responsable')
-                                                            ->options(fn(callable $get) => [
-                                                                'S/S' => 'S/S',
-                                                            ] + (
-                                                                \App\Models\Persona::opcionesPorFuncion($get('funcion_id'))
-                                                            ))
+                                                            ->options(function() {
+                                                                return DB::connection('sistema_principal')
+                                                                    ->table('v_personas_disponibles')
+                                                                    ->select('ID_PERSONA', 'CODIGO_AGENTE', 'NOMBRE_COMPLETO')
+                                                                    ->get()
+                                                                    ->mapWithKeys(function($item) {
+                                                                        return [$item->ID_PERSONA => $item->CODIGO_AGENTE . ' - ' . $item->NOMBRE_COMPLETO];
+                                                                    })
+                                                                    ->toArray();
+                                                            })
                                                             ->searchable()
                                                             ->preload()
                                                             ->required(),
@@ -1028,11 +1081,16 @@ class OrdenServicioResource extends Resource
 
                                                         Select::make('responsable_id')
                                                             ->label('Responsable')
-                                                            ->options(fn(callable $get) => [
-                                                                'S/S' => 'S/S',
-                                                            ] + (
-                                                                \App\Models\Persona::opcionesPorFuncion($get('funcion_id'))
-                                                            ))
+                                                            ->options(function() {
+                                                                return DB::connection('sistema_principal')
+                                                                    ->table('v_personas_disponibles')
+                                                                    ->select('ID_PERSONA', 'CODIGO_AGENTE', 'NOMBRE_COMPLETO')
+                                                                    ->get()
+                                                                    ->mapWithKeys(function($item) {
+                                                                        return [$item->ID_PERSONA => $item->CODIGO_AGENTE . ' - ' . $item->NOMBRE_COMPLETO];
+                                                                    })
+                                                                    ->toArray();
+                                                            })
                                                             ->searchable()
                                                             ->preload()
                                                             ->required(),
@@ -1086,11 +1144,16 @@ class OrdenServicioResource extends Resource
                                                         /* Responsable */
                                                         Select::make('responsable_id')
                                                             ->label('Responsable')
-                                                            ->options(fn(callable $get) => [
-                                                                'S/S' => 'S/S',
-                                                            ] + (
-                                                                \App\Models\Persona::opcionesPorFuncion($get('funcion_id'))
-                                                            ))
+                                                            ->options(function() {
+                                                                return DB::connection('sistema_principal')
+                                                                    ->table('v_personas_disponibles')
+                                                                    ->select('ID_PERSONA', 'CODIGO_AGENTE', 'NOMBRE_COMPLETO')
+                                                                    ->get()
+                                                                    ->mapWithKeys(function($item) {
+                                                                        return [$item->ID_PERSONA => $item->CODIGO_AGENTE . ' - ' . $item->NOMBRE_COMPLETO];
+                                                                    })
+                                                                    ->toArray();
+                                                            })
                                                             ->searchable()
                                                             ->preload()
                                                             ->required(),
@@ -1270,30 +1333,82 @@ class OrdenServicioResource extends Resource
                                                                 Hidden::make('requiere_sector'),
 
                                                                 Grid::make(2)->schema([
-                                                                    TextInput::make('horario')
+                                                                    Select::make('horario')
                                                                         ->label('Horario')
                                                                         ->visible(fn(Get $get) => $get('requiere_horario'))
-                                                                        ->placeholder('Ej: 08:00 - 16:00'),
+                                                                        ->options(function() {
+                                                                            return DB::connection('osgo')
+                                                                                ->table('osgo_horarios')
+                                                                                ->where('ACTIVO', 'SI')
+                                                                                ->pluck('NOMBRE', 'NOMBRE')
+                                                                                ->toArray();
+                                                                        })
+                                                                        ->searchable(),
 
-                                                                    TextInput::make('placa_vehiculo')
+                                                                    Select::make('placa_vehiculo')
                                                                         ->label('Placa del Vehículo')
                                                                         ->visible(fn(Get $get) => $get('requiere_vehiculo'))
-                                                                        ->placeholder('Ej: ABC-123'),
+                                                                        ->options(function() {
+                                                                            return DB::connection('osgo')
+                                                                                ->table('osgo_vehiculo')
+                                                                                ->where('ACTIVO', 'SI')
+                                                                                ->pluck('PLACA', 'PLACA')
+                                                                                ->toArray();
+                                                                        })
+                                                                        ->searchable(),
                                                                 ]),
 
                                                                 Grid::make(2)->schema([
-                                                                    TextInput::make('grupo_asignado')
+                                                                    Select::make('grupo_asignado')
                                                                         ->label('Grupo Asignado')
-                                                                        ->placeholder('Ej: Grupo Alfa'),
+                                                                        ->options([
+                                                                            'GRUPO_A' => 'GRUPO A',
+                                                                            'GRUPO_B' => 'GRUPO B', 
+                                                                            'GRUPO_C' => 'GRUPO C',
+                                                                            'GRUPO_D' => 'GRUPO D',
+                                                                            'GRUPO_E' => 'GRUPO E',
+                                                                            'GRUPO_A_M' => 'GRUPO A MOTORIZADO',
+                                                                            'GRUPO_B_M' => 'GRUPO B MOTORIZADO',
+                                                                            'GRUPO_C_M' => 'GRUPO C MOTORIZADO',
+                                                                            'GRUPO_A_MOTOS' => 'GRUPO A MOTOS',
+                                                                            'GRUPO_B_MOTOS' => 'GRUPO B MOTOS',
+                                                                            'GRUPO_C_MOTOS' => 'GRUPO C MOTOS',
+                                                                            'GA_PEDESTRE' => 'GRUPO A PEDESTRE',
+                                                                            'GB_PEDESTRE' => 'GRUPO B PEDESTRE',
+                                                                            'GC_PEDESTRE' => 'GRUPO C PEDESTRE'
+                                                                        ])
+                                                                        ->searchable(),
 
-                                                                    TextInput::make('responsable')
+                                                                    Select::make('responsable')
                                                                         ->label('Responsable')
-                                                                        ->placeholder('Nombre del responsable'),
+                                                                        ->options(function() {
+                                                                            return DB::connection('sistema_principal')
+                                                                                ->table('v_personas_disponibles')
+                                                                                ->select('ID_PERSONA', 'CODIGO_AGENTE', 'NOMBRE_COMPLETO')
+                                                                                ->get()
+                                                                                ->mapWithKeys(function($item) {
+                                                                                    return [$item->ID_PERSONA => $item->CODIGO_AGENTE . ' - ' . $item->NOMBRE_COMPLETO];
+                                                                                })
+                                                                                ->toArray();
+                                                                        })
+                                                                        ->searchable()
+                                                                        ->preload(),
                                                                 ]),
 
-                                                                TextInput::make('codigo_responsable')
+                                                                Hidden::make('codigo_responsable')
                                                                     ->label('Código del Responsable')
-                                                                    ->placeholder('Código de identificación'),
+                                                                    ->reactive()
+                                                                    ->afterStateUpdated(function($state, $set, $get) {
+                                                                        if ($get('responsable')) {
+                                                                            $persona = DB::connection('sistema_principal')
+                                                                                ->table('v_personas_disponibles')
+                                                                                ->where('ID_PERSONA', $get('responsable'))
+                                                                                ->first();
+                                                                            if ($persona) {
+                                                                                $set('codigo_responsable', $persona->CODIGO_AGENTE);
+                                                                            }
+                                                                        }
+                                                                    }),
 
                                                                 Textarea::make('sector_descripcion')
                                                                     ->label('Descripción del Sector')
@@ -1313,6 +1428,321 @@ class OrdenServicioResource extends Resource
                                                             ])
                                                             ->columns(1)
                                                             ->columnSpanFull()
+                                                            ->defaultItems(0)
+                                                            ->collapsible(),
+                                                    ]),
+                                            ]),
+
+                                        Tab::make('Jefe de Control Distrito Centro')
+                                            ->schema([
+                                                Section::make('Control de Distrito Centro')
+                                                    ->description('Asignación de personal para control del distrito centro')
+                                                    ->schema([
+                                                        Repeater::make('control_distrito_centro')
+                                                            ->label('Asignaciones de Control')
+                                                            ->addActionLabel('Agregar Asignación')
+                                                            ->schema([
+                                                                Select::make('horario')
+                                                                    ->label('Horario')
+                                                                    ->options(function() {
+                                                                        return DB::connection('osgo')
+                                                                            ->table('osgo_horarios')
+                                                                            ->where('ACTIVO', 'SI')
+                                                                            ->pluck('NOMBRE', 'NOMBRE')
+                                                                            ->toArray();
+                                                                    })
+                                                                    ->required()
+                                                                    ->searchable(),
+
+                                                                Select::make('funcion')
+                                                                    ->label('Función')
+                                                                    ->options([
+                                                                        'INSPECTOR DE CONTROL GENERAL' => 'INSPECTOR DE CONTROL GENERAL',
+                                                                        'SUB INSPECTOR DE CONTROL GENERAL' => 'SUB INSPECTOR DE CONTROL GENERAL',
+                                                                        'JEFE DE CONTROL DISTRITO CENTRO' => 'JEFE DE CONTROL DISTRITO CENTRO'
+                                                                    ])
+                                                                    ->required(),
+
+                                                                Select::make('responsable')
+                                                                    ->label('Responsable')
+                                                                    ->options(function() {
+                                                                        return DB::connection('sistema_principal')
+                                                                            ->table('v_personas_disponibles')
+                                                                            ->select('ID_PERSONA', 'CODIGO_AGENTE', 'NOMBRE_COMPLETO')
+                                                                            ->get()
+                                                                            ->mapWithKeys(function($item) {
+                                                                                return [$item->ID_PERSONA => $item->CODIGO_AGENTE . ' - ' . $item->NOMBRE_COMPLETO];
+                                                                            })
+                                                                            ->toArray();
+                                                                    })
+                                                                    ->searchable()
+                                                                    ->preload()
+                                                                    ->required(),
+                                                            ])
+                                                            ->columns(3)
+                                                            ->defaultItems(0)
+                                                            ->collapsible(),
+                                                    ]),
+                                            ]),
+
+                                        Tab::make('Personal Administrativo Operativo')
+                                            ->schema([
+                                                Section::make('Personal Administrativo')
+                                                    ->description('Asignación de personal administrativo y operativo')
+                                                    ->schema([
+                                                        Repeater::make('personal_administrativo')
+                                                            ->label('Personal Administrativo')
+                                                            ->addActionLabel('Agregar Personal')
+                                                            ->schema([
+                                                                Select::make('horario')
+                                                                    ->label('Horario')
+                                                                    ->options(function() {
+                                                                        return DB::connection('osgo')
+                                                                            ->table('osgo_horarios')
+                                                                            ->where('ACTIVO', 'SI')
+                                                                            ->pluck('NOMBRE', 'NOMBRE')
+                                                                            ->toArray();
+                                                                    })
+                                                                    ->required()
+                                                                    ->searchable(),
+
+                                                                Select::make('funcion')
+                                                                    ->label('Función')
+                                                                    ->options([
+                                                                        'LOGISTICA P4' => 'LOGISTICA P4',
+                                                                        'COORDINACIÓN SISTEMA INTEGRADO DE SEGURIDAD ECU.911' => 'COORDINACIÓN SISTEMA INTEGRADO DE SEGURIDAD ECU.911',
+                                                                        'COMISIONADO CENTRO DE RETENCION VEHICULAR' => 'COMISIONADO CENTRO DE RETENCION VEHICULAR',
+                                                                        'GESTOR DE DATOS' => 'GESTOR DE DATOS',
+                                                                        'ASISTENTE DEL JEFE DE TRÁNSITO' => 'ASISTENTE DEL JEFE DE TRÁNSITO',
+                                                                        'ESTADISTICAS GERENCIA OPERATIVA' => 'ESTADISTICAS GERENCIA OPERATIVA',
+                                                                        'PROCESO DE CHATARRIZACIÓN' => 'PROCESO DE CHATARRIZACIÓN'
+                                                                    ])
+                                                                    ->required(),
+
+                                                                Select::make('responsable')
+                                                                    ->label('Responsable')
+                                                                    ->options(function() {
+                                                                        return DB::connection('sistema_principal')
+                                                                            ->table('v_personas_disponibles')
+                                                                            ->select('ID_PERSONA', 'CODIGO_AGENTE', 'NOMBRE_COMPLETO')
+                                                                            ->get()
+                                                                            ->mapWithKeys(function($item) {
+                                                                                return [$item->ID_PERSONA => $item->CODIGO_AGENTE . ' - ' . $item->NOMBRE_COMPLETO];
+                                                                            })
+                                                                            ->toArray();
+                                                                    })
+                                                                    ->searchable()
+                                                                    ->preload()
+                                                                    ->required(),
+                                                            ])
+                                                            ->columns(3)
+                                                            ->defaultItems(0)
+                                                            ->collapsible(),
+                                                    ]),
+                                            ]),
+
+                                        Tab::make('Salas de Operaciones y Despacho')
+                                            ->schema([
+                                                Section::make('Salas de Operaciones')
+                                                    ->description('Asignación de personal para salas de operaciones y despacho')
+                                                    ->schema([
+                                                        Repeater::make('salas_operaciones')
+                                                            ->label('Salas de Operaciones')
+                                                            ->addActionLabel('Agregar Sala')
+                                                            ->schema([
+                                                                Select::make('horario')
+                                                                    ->label('Horario')
+                                                                    ->options(function() {
+                                                                        return DB::connection('osgo')
+                                                                            ->table('osgo_horarios')
+                                                                            ->where('ACTIVO', 'SI')
+                                                                            ->pluck('NOMBRE', 'NOMBRE')
+                                                                            ->toArray();
+                                                                    })
+                                                                    ->required()
+                                                                    ->searchable(),
+
+                                                                Select::make('funcion')
+                                                                    ->label('Función')
+                                                                    ->options([
+                                                                        'DESPACHO A' => 'DESPACHO A',
+                                                                        'DESPACHO B' => 'DESPACHO B',
+                                                                        'DESPACHO C' => 'DESPACHO C',
+                                                                        'DESPACHO D' => 'DESPACHO D',
+                                                                        'DESPACHO E' => 'DESPACHO E'
+                                                                    ])
+                                                                    ->required(),
+
+                                                                Select::make('responsable')
+                                                                    ->label('Responsable')
+                                                                    ->options(function() {
+                                                                        return DB::connection('sistema_principal')
+                                                                            ->table('v_personas_disponibles')
+                                                                            ->select('ID_PERSONA', 'CODIGO_AGENTE', 'NOMBRE_COMPLETO')
+                                                                            ->get()
+                                                                            ->mapWithKeys(function($item) {
+                                                                                return [$item->ID_PERSONA => $item->CODIGO_AGENTE . ' - ' . $item->NOMBRE_COMPLETO];
+                                                                            })
+                                                                            ->toArray();
+                                                                    })
+                                                                    ->searchable()
+                                                                    ->preload()
+                                                                    ->required(),
+                                                            ])
+                                                            ->columns(3)
+                                                            ->defaultItems(0)
+                                                            ->collapsible(),
+                                                    ]),
+                                            ]),
+
+                                        Tab::make('Sala Video Vigilancia')
+                                            ->schema([
+                                                Section::make('Video Vigilancia')
+                                                    ->description('Asignación de personal para sala de video vigilancia')
+                                                    ->schema([
+                                                        Repeater::make('video_vigilancia')
+                                                            ->label('Video Vigilancia')
+                                                            ->addActionLabel('Agregar Asignación')
+                                                            ->schema([
+                                                                Select::make('horario')
+                                                                    ->label('Horario')
+                                                                    ->options(function() {
+                                                                        return DB::connection('osgo')
+                                                                            ->table('osgo_horarios')
+                                                                            ->where('ACTIVO', 'SI')
+                                                                            ->pluck('NOMBRE', 'NOMBRE')
+                                                                            ->toArray();
+                                                                    })
+                                                                    ->required()
+                                                                    ->searchable(),
+
+                                                                Select::make('funcion')
+                                                                    ->label('Función')
+                                                                    ->options([
+                                                                        'VISOR A' => 'VISOR A',
+                                                                        'VISOR B' => 'VISOR B',
+                                                                        'VISOR C' => 'VISOR C',
+                                                                        'VISOR D' => 'VISOR D',
+                                                                        'VISOR E' => 'VISOR E'
+                                                                    ])
+                                                                    ->required(),
+
+                                                                Select::make('responsable')
+                                                                    ->label('Responsable')
+                                                                    ->options(function() {
+                                                                        return DB::connection('sistema_principal')
+                                                                            ->table('v_personas_disponibles')
+                                                                            ->select('ID_PERSONA', 'CODIGO_AGENTE', 'NOMBRE_COMPLETO')
+                                                                            ->get()
+                                                                            ->mapWithKeys(function($item) {
+                                                                                return [$item->ID_PERSONA => $item->CODIGO_AGENTE . ' - ' . $item->NOMBRE_COMPLETO];
+                                                                            })
+                                                                            ->toArray();
+                                                                    })
+                                                                    ->searchable()
+                                                                    ->preload()
+                                                                    ->required(),
+                                                            ])
+                                                            ->columns(3)
+                                                            ->defaultItems(0)
+                                                            ->collapsible(),
+                                                    ]),
+                                            ]),
+
+                                        Tab::make('Servicios Motorizados')
+                                            ->schema([
+                                                Section::make('Circuitos y Asignaciones')
+                                                    ->description('Asignación de circuitos y personal para servicios motorizados')
+                                                    ->schema([
+                                                        Repeater::make('servicios_motorizados')
+                                                            ->label('Servicios Motorizados')
+                                                            ->addActionLabel('Agregar Servicio')
+                                                            ->schema([
+                                                                Select::make('horario')
+                                                                    ->label('Horario')
+                                                                    ->options(function() {
+                                                                        return DB::connection('osgo')
+                                                                            ->table('osgo_horarios')
+                                                                            ->where('ACTIVO', 'SI')
+                                                                            ->pluck('NOMBRE', 'NOMBRE')
+                                                                            ->toArray();
+                                                                    })
+                                                                    ->required()
+                                                                    ->searchable(),
+
+                                                                Select::make('placa_vehiculo')
+                                                                    ->label('Placa del Vehículo')
+                                                                    ->options(function() {
+                                                                        return DB::connection('osgo')
+                                                                            ->table('osgo_vehiculo')
+                                                                            ->where('ACTIVO', 'SI')
+                                                                            ->pluck('PLACA', 'PLACA')
+                                                                            ->toArray();
+                                                                    })
+                                                                    ->searchable(),
+
+                                                                Select::make('circuito')
+                                                                    ->label('Circuito')
+                                                                    ->options(function() {
+                                                                        return DB::connection('osgo')
+                                                                            ->table('osgo_circuitos')
+                                                                            ->where('ACTIVO', 'SI')
+                                                                            ->pluck('NOMBRE_CIRCUITO', 'NOMBRE_CIRCUITO')
+                                                                            ->toArray();
+                                                                    })
+                                                                    ->searchable(),
+
+                                                                Select::make('sector')
+                                                                    ->label('Sector')
+                                                                    ->options(function() {
+                                                                        return DB::connection('osgo')
+                                                                            ->table('osgo_sectores')
+                                                                            ->where('ACTIVO', 'SI')
+                                                                            ->pluck('NOMBRE_SECTOR', 'NOMBRE_SECTOR')
+                                                                            ->toArray();
+                                                                    })
+                                                                    ->searchable(),
+
+                                                                Select::make('novedades')
+                                                                    ->label('Novedades a Cumplir')
+                                                                    ->options(function() {
+                                                                        return DB::connection('osgo')
+                                                                            ->table('osgo_novedades')
+                                                                            ->where('ACTIVO', 'SI')
+                                                                            ->pluck('DESCRIPCION', 'DESCRIPCION')
+                                                                            ->toArray();
+                                                                    })
+                                                                    ->searchable()
+                                                                    ->multiple(),
+
+                                                                Select::make('responsable')
+                                                                    ->label('Responsable')
+                                                                    ->options(function() {
+                                                                        return DB::connection('sistema_principal')
+                                                                            ->table('v_personas_disponibles')
+                                                                            ->select('ID_PERSONA', 'CODIGO_AGENTE', 'NOMBRE_COMPLETO')
+                                                                            ->get()
+                                                                            ->mapWithKeys(function($item) {
+                                                                                return [$item->ID_PERSONA => $item->CODIGO_AGENTE . ' - ' . $item->NOMBRE_COMPLETO];
+                                                                            })
+                                                                            ->toArray();
+                                                                    })
+                                                                    ->searchable()
+                                                                    ->preload()
+                                                                    ->required(),
+
+                                                                Select::make('grupo_operativo')
+                                                                    ->label('Grupo Operativo')
+                                                                    ->options(function() {
+                                                                        return DB::connection('osgo')
+                                                                            ->table('osgo_grupos_operativos')
+                                                                            ->where('ACTIVO', 'SI')
+                                                                            ->pluck('NOMBRE_GRUPO', 'CODIGO_GRUPO')
+                                                                            ->toArray();
+                                                                    })
+                                                                    ->searchable(),
+                                                            ])
+                                                            ->columns(3)
                                                             ->defaultItems(0)
                                                             ->collapsible(),
                                                     ]),
@@ -1421,14 +1851,14 @@ class OrdenServicioResource extends Resource
                                                                 if (empty($personal)) {
                                                                     return 'No hay personal con control especial configurado.';
                                                                 }
-                                                                
+
                                                                 $resumen = [];
                                                                 foreach ($personal as $item) {
                                                                     if (!empty($item['nombre_completo'])) {
                                                                         $resumen[] = "• {$item['nombre_completo']} - {$item['tipo_control']}";
                                                                     }
                                                                 }
-                                                                
+
                                                                 return implode("\n", $resumen);
                                                             })
                                                             ->columnSpanFull(),
@@ -1683,8 +2113,8 @@ class OrdenServicioResource extends Resource
                 TextColumn::make('DISTRITO')
                     ->label('Distrito'),
 
-                TextColumn::make('CANTON')
-                    ->label('Cantón'),
+                TextColumn::make('PROVINCIA')
+                    ->label('Provincia'),
 
                 BadgeColumn::make('estado_orden.ESTADO_ORDEN')
                     ->label('Estado')

@@ -22,7 +22,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
  * @property string|null $NRO_ORDEN
  * @property Carbon|null $FECHA
  * @property string|null $DISTRITO
- * @property string|null $CANTON
+ * @property string|null $PROVINCIA
+ * @property string|null $CIUDAD
  * @property string|null $CREADO_POR
  * @property int|null $ID_ESTADO_ORDEN
  * @property Carbon|null $FECHA_ACTUAL
@@ -49,7 +50,8 @@ class OrdenServicio extends Model
         'NRO_ORDEN',
         'FECHA',
         'DISTRITO',
-        'CANTON',
+        'PROVINCIA',
+        'CIUDAD',
         'CREADO_POR',
         'ID_ESTADO_ORDEN',
         'FECHA_ACTUAL'

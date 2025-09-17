@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Model;
  * Class Sectore
  * 
  * @property int $ID_SECTOR
- * @property string|null $SECTOR
+ * @property string|null $NOMBRE_SECTOR
  * @property string|null $DISTRITO
  * @property string|null $CANTON
  * @property string|null $ACTIVO
@@ -27,7 +27,7 @@ class Sectore extends Model
 	public $timestamps = false;
 
 	protected $fillable = [
-		'SECTOR',
+		'NOMBRE_SECTOR',
 		'DISTRITO',
 		'CANTON',
 		'ACTIVO'
@@ -36,7 +36,7 @@ class Sectore extends Model
 	public static function options(): array
 	{
 		return static::query()
-			->selectRaw("ID_SECTOR, TRIM(COALESCE(SECTOR, '')) AS label")
+			->selectRaw("ID_SECTOR, TRIM(COALESCE(NOMBRE_SECTOR, '')) AS label")
 			->orderBy('label')
 			->get()
 			->filter(fn ($row) => ($row->label ?? '') !== '')

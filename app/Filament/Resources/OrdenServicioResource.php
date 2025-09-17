@@ -38,6 +38,7 @@ use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Tables\Columns\BadgeColumn;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\HtmlString;
 use Illuminate\Support\Str;
@@ -61,11 +62,23 @@ class OrdenServicioResource extends Resource
     {
         $ids = [12, 13, 14, 15, 16, 17, 18];
 
-        $funciones = \App\Models\Funcione::query()
-            ->whereIn('ID_FUNCION', $ids)
-            ->orderByRaw('FIELD(ID_FUNCION, ' . implode(',', $ids) . ')')
-            ->pluck('FUNCION', 'ID_FUNCION')
-            ->toArray();
+        // Optimización: Cache las funciones para evitar consultas repetidas
+        $funciones = cache()->remember('funciones_orden_servicio', 3600, function() use ($ids) {
+            return \App\Models\Funcione::query()
+                ->whereIn('ID_FUNCION', $ids)
+                ->orderByRaw('FIELD(ID_FUNCION, ' . implode(',', $ids) . ')')
+                ->pluck('FUNCION', 'ID_FUNCION')
+                ->toArray();
+        });
+
+        // Optimización: Pre-cargar todas las opciones de personas por función
+        $personasPorFuncion = cache()->remember('personas_por_funcion_orden', 1800, function() {
+            $opciones = [];
+            for ($i = 1; $i <= 20; $i++) {
+                $opciones[$i] = \App\Models\Persona::opcionesPorFuncion($i);
+            }
+            return $opciones;
+        });
 
         return $form
             ->schema([
@@ -199,7 +212,7 @@ class OrdenServicioResource extends Resource
                                                                 /***** Gerente Operativo  (ID_FUNCION = 1) *****/
                                                                 Select::make('funciones.1')
                                                                     ->label('Gerente Operativo')
-                                                                    ->options(Persona::opcionesPorFuncion(1))
+                                                                    ->options($personasPorFuncion[1] ?? [])
                                                                     ->default(
                                                                         fn(?OrdenServicio $record) =>
                                                                         $record
@@ -219,7 +232,7 @@ class OrdenServicioResource extends Resource
                                                                 /***** Jefe de Tránsito  (ID_FUNCION = 2) *****/
                                                                 Select::make('funciones.2')
                                                                     ->label('Jefe de Tránsito')
-                                                                    ->options(Persona::opcionesPorFuncion(2))
+                                                                    ->options($personasPorFuncion[2] ?? [])
                                                                     ->default(
                                                                         fn(?OrdenServicio $record) =>
                                                                         $record
@@ -239,7 +252,7 @@ class OrdenServicioResource extends Resource
                                                                 /***** Sub Jefe de Tránsito  (ID_FUNCION = 3) *****/
                                                                 Select::make('funciones.3')
                                                                     ->label('Sub Jefe de Tránsito')
-                                                                    ->options(Persona::opcionesPorFuncion(3))
+                                                                    ->options($personasPorFuncion[3] ?? [])
                                                                     ->default(
                                                                         fn(?OrdenServicio $record) =>
                                                                         $record
@@ -259,7 +272,7 @@ class OrdenServicioResource extends Resource
                                                                 /***** Inspector Distrito Centro  (ID_FUNCION = 4) *****/
                                                                 Select::make('funciones.4')
                                                                     ->label('Inspector Distrito Centro')
-                                                                    ->options(Persona::opcionesPorFuncion(4))
+                                                                    ->options($personasPorFuncion[4] ?? [])
                                                                     ->default(
                                                                         fn(?OrdenServicio $record) =>
                                                                         $record
@@ -279,7 +292,7 @@ class OrdenServicioResource extends Resource
                                                                 /***** Operaciones P3  (ID_FUNCION = 5) *****/
                                                                 Select::make('funciones.5')
                                                                     ->label('Operaciones P3')
-                                                                    ->options(Persona::opcionesPorFuncion(5))
+                                                                    ->options($personasPorFuncion[5] ?? [])
                                                                     ->default(
                                                                         fn(?OrdenServicio $record) =>
                                                                         $record
@@ -299,7 +312,7 @@ class OrdenServicioResource extends Resource
                                                                 /***** Inspector Distrito Sur  (ID_FUNCION = 6) *****/
                                                                 Select::make('funciones.6')
                                                                     ->label('Inspector Distrito Sur')
-                                                                    ->options(Persona::opcionesPorFuncion(6))
+                                                                    ->options($personasPorFuncion[6] ?? [])
                                                                     ->default(
                                                                         fn(?OrdenServicio $record) =>
                                                                         $record
@@ -319,7 +332,7 @@ class OrdenServicioResource extends Resource
                                                                 /***** Inspector Distrito Norte  (ID_FUNCION = 7) *****/
                                                                 Select::make('funciones.7')
                                                                     ->label('Inspector Distrito Norte')
-                                                                    ->options(Persona::opcionesPorFuncion(7))
+                                                                    ->options($personasPorFuncion[7] ?? [])
                                                                     ->default(
                                                                         fn(?OrdenServicio $record) =>
                                                                         $record
@@ -339,7 +352,7 @@ class OrdenServicioResource extends Resource
                                                                 /***** Sub Inspector Cantón Pimampiro  (ID_FUNCION = 8) *****/
                                                                 Select::make('funciones.8')
                                                                     ->label('Sub Inspector Cantón Pimampiro')
-                                                                    ->options(Persona::opcionesPorFuncion(8))
+                                                                    ->options($personasPorFuncion[8] ?? [])
                                                                     ->default(
                                                                         fn(?OrdenServicio $record) =>
                                                                         $record
@@ -359,7 +372,7 @@ class OrdenServicioResource extends Resource
                                                                 /***** Conductor G.O.T.  (ID_FUNCION = 9) *****/
                                                                 Select::make('funciones.9')
                                                                     ->label('Conductor G.O.T.')
-                                                                    ->options(Persona::opcionesPorFuncion(9))
+                                                                    ->options($personasPorFuncion[9] ?? [])
                                                                     ->default(
                                                                         fn(?OrdenServicio $record) =>
                                                                         $record
@@ -1437,7 +1450,21 @@ class OrdenServicioResource extends Resource
                 /* Botón EDITAR (no se muestra en borradores) */
                 EditAction::make()
                     ->color('secondary')
-                    ->visible(fn($record) => $record->ID_ESTADO_ORDEN !== 1),
+                    ->visible(fn($record) => $record->ID_ESTADO_ORDEN !== 1 && Gate::allows('crear-orden-servicio')),
+
+                /* Botón APROBAR (solo Jefe de Distrito y pendientes) */
+                TableAction::make('aprobar')
+                    ->label('Aprobar')
+                    ->icon('heroicon-m-check-circle')
+                    ->color('success')
+                    ->requiresConfirmation()
+                    ->visible(fn($record) => in_array($record->ID_ESTADO_ORDEN, [1], true) && Gate::allows('aprobar-orden-servicio'))
+                    ->action(function ($record) {
+                        $record->update([
+                            'ID_ESTADO_ORDEN' => 2,
+                            'FECHA_ACTUAL'    => now(),
+                        ]);
+                    }),
             ])
 
 

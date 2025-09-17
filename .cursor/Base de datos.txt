@@ -1,53 +1,99 @@
 ================================================================================
                     DOCUMENTACIÓN DE LA BASE DE DATOS OSGO
-                    Sistema de Gestión Operativa
+                    Sistema de Gestión Operativa - Arquitectura Dual
 ================================================================================
 
-FECHA DE ANÁLISIS: 2025-01-27
-VERSIÓN DEL SISTEMA: 1.0
-TOTAL DE TABLAS: 47 (17 con prefijo osgo_)
+FECHA DE ANÁLISIS: 2025-01-27 (ACTUALIZADA)
+VERSIÓN DEL SISTEMA: 2.0 - ARQUITECTURA DUAL
+ARQUITECTURA: Dual Database (Almacenamiento + Consulta)
 
 ================================================================================
-1. RESUMEN EJECUTIVO
+1. RESUMEN EJECUTIVO - NUEVA ARQUITECTURA
 ================================================================================
 
-La base de datos OSGO está diseñada para gestionar operaciones y servicios 
-operativos, con un enfoque en:
+El sistema OSGO ahora opera con una ARQUITECTURA DUAL de bases de datos:
 
-- Gestión de órdenes de servicio
-- Control de horas trabajadas por personal
-- Administración de anexos de eventos y operaciones
-- Gestión de recursos operativos (vehículos, equipos)
-- Control de personal y asignaciones
+🗄️ **BASE DE DATOS OSGO** (Almacenamiento Principal)
+- Archivo: osgo.sql
+- Propósito: Almacenamiento de todos los datos del sistema OSGO
+- Tablas: 17 tablas con prefijo "osgo_" + tablas de soporte Laravel
+- Operaciones: CREATE, UPDATE, DELETE de datos operativos
 
-ARQUITECTURA:
-- Prefijo principal: "osgo_" para tablas del sistema
-- Tablas de soporte sin prefijo para compatibilidad
-- Relaciones bien definidas con integridad referencial
-- Índices optimizados para consultas frecuentes
+📊 **BASE DE DATOS SISTEMA_PRINCIPAL** (Consulta de Datos)
+- Archivo: sistema_principal.sql
+- Propósito: Obtención de datos de referencia (solo lectura)
+- Tablas: 8 tablas de datos maestros del sistema principal
+- Operaciones: Solo SELECT para obtener datos de referencia
+
+VENTAJAS DE ESTA ARQUITECTURA:
+✅ Separación clara de responsabilidades
+✅ Independencia operativa del sistema OSGO
+✅ Seguridad mejorada (solo lectura en sistema principal)
+✅ Escalabilidad y mantenimiento simplificado
+✅ Backup independiente de cada base de datos
 
 ================================================================================
-2. TABLAS PRINCIPALES DEL SISTEMA (PREFIJO osgo_)
+2. BASE DE DATOS OSGO (ALMACENAMIENTO PRINCIPAL)
 ================================================================================
+
+PROPÓSITO: Almacenar todos los datos operativos del sistema OSGO
+CONEXIÓN: 'osgo' en config/database.php
+ARCHIVO ORIGEN: osgo.sql
 
 2.1 GESTIÓN DE ÓRDENES DE SERVICIO
 -----------------------------------
 
-osgo_orden_servicio
+osgo_orden_servicio (TABLA MAESTRA PRINCIPAL)
 ├── ID_ORDEN_SERVICIO (PK) - Identificador único
 ├── NRO_ORDEN - Número de orden (generado automáticamente)
 ├── FECHA - Fecha de la orden
 ├── DISTRITO - Distrito donde se ejecuta
-├── PROVINCIA - Provincia
-├── CIUDAD - Ciudad
+├── PROVINCIA - Provincia (IMBABURA, etc.)
+├── CIUDAD - Ciudad (IBARRA, etc.)
+├── DIA_SEMANA - Día de la semana (MIÉRCOLES, JUEVES, etc.)
+├── FECHA_COMPLETA - Fecha completa legible (2 DE ABRIL DE 2025)
+├── TIPO_ORDEN - Tipo de orden (GENERAL, ESPECIAL)
+├── OPERACIONES - Tipo de operaciones (P3, P4, etc.)
+├── DISPOSICIONES_GENERALES - Disposiciones generales
+├── REVISION - Número de revisión (00, 01, etc.)
+├── FORMATO - Formato del documento ("11 julio 2022")
+├── EJEMPLAR_NUMERO - Número de ejemplar
 ├── CREADO_POR - Usuario que creó la orden
 ├── ID_ESTADO_ORDEN (FK) - Estado actual
-└── FECHA_ACTUAL - Timestamp de creación
+├── FECHA_ACTUAL - Timestamp de creación
+├── created_at - Timestamp Laravel
+└── updated_at - Timestamp Laravel
 
-osgo_estado_orden
+osgo_detalle_orden_servicio (TABLA DETALLE)
+├── ID_DET_ORDEN_SERVICIO (PK) - Identificador único
+├── ID_ORDEN_SERVICIO (FK) - Referencia a orden
+├── ID_FUNCION (FK) - Función asignada (REF: sistema_principal.funciones)
+├── GRUPO_FUNCIONAL - Grupo al que pertenece
+├── FUNCION - Nombre de la función
+├── CODIGO_RESPONSABLE - Código del responsable
+├── RESPONSABLE - Nombre del responsable
+├── SECTOR - Sector asignado
+├── HORARIO - Horario de trabajo (06:00-14:00)
+├── TIPO_SERVICIO - Tipo de servicio (MOTORIZADO, PEDESTRE, ADMINISTRATIVO)
+├── PLACA_VEHICULO - Placa del vehículo asignado
+├── GRUPO_ASIGNADO - Grupo asignado (GRUPO_A, GRUPO_B, etc.)
+├── CIRCUITO - Circuito asignado (CIRCUITO UNO, DOS, etc.)
+├── DESCRIPCION_RUTA - Descripción detallada de la ruta
+├── TIPO_VEHICULO - Tipo de vehículo (PATRULLERO, GRUA, MOTORIZADO)
+├── REQUIERE_ACOMPANANTE - Si requiere acompañante (boolean)
+├── ACOMPANANTE - Nombre del acompañante
+├── INSTRUCCIONES_ESPECIALES - Instrucciones especiales
+├── NOVEDADES - Novedades del servicio
+├── OBSERVACION - Observaciones adicionales
+├── created_at - Timestamp Laravel
+└── updated_at - Timestamp Laravel
+
+osgo_estado_orden (TABLA MAESTRA)
 ├── ID_ESTADO_ORDEN (PK) - Identificador único
 ├── ESTADO_ORDEN - Nombre del estado
-└── DESCRIPCION - Descripción del estado
+├── DESCRIPCION - Descripción del estado
+├── created_at - Timestamp Laravel
+└── updated_at - Timestamp Laravel
 
 ESTADOS DISPONIBLES:
 - Pendiente: Orden recién creada, pendiente de aprobación
@@ -56,27 +102,17 @@ ESTADOS DISPONIBLES:
 - Finalizada: Orden concluida exitosamente
 - Cancelada: Orden cancelada y no se realizará
 
-osgo_detalle_orden_servicio
-├── ID_DET_ORDEN_SERVICIO (PK) - Identificador único
-├── ID_ORDEN_SERVICIO (FK) - Referencia a orden
-├── ID_FUNCION (FK) - Función asignada
-├── GRUPO_FUNCIONAL - Grupo al que pertenece
-├── FUNCION - Nombre de la función
-├── CODIGO_RESPONSABLE - Código del responsable
-├── RESPONSABLE - Nombre del responsable
-├── SECTOR - Sector asignado
-├── NOVEDADES - Novedades del servicio
-└── OBSERVACION - Observaciones adicionales
-
 2.2 CONTROL DE HORAS
 --------------------
 
 osgo_control_horas
 ├── ID_CONTROL_HORAS (PK) - Identificador único
-├── ID_PERSONA (FK) - Referencia a persona
+├── ID_PERSONA (FK) - Referencia a persona (REF: sistema_principal.personas)
 ├── FECHA - Fecha del control
 ├── HORAS_TRABAJADAS - Horas trabajadas (decimal 5,2)
-└── ESTADO - Estado del control
+├── ESTADO - Estado del control
+├── created_at - Timestamp Laravel
+└── updated_at - Timestamp Laravel
 
 ESTADOS DISPONIBLES:
 - DISPONIBLE: Personal disponible para asignación
@@ -90,7 +126,9 @@ osgo_historial_horas
 ├── HORAS_ANTERIORES - Horas antes del cambio
 ├── HORAS_NUEVAS - Horas después del cambio
 ├── MOTIVO - Motivo del cambio
-└── CREATED_AT - Timestamp del cambio
+├── CREATED_AT - Timestamp del cambio
+├── created_at - Timestamp Laravel
+└── updated_at - Timestamp Laravel
 
 osgo_control_horas_mensuales
 ├── ID_CONTROL_MENSUAL (PK) - Identificador único
@@ -101,7 +139,9 @@ osgo_control_horas_mensuales
 ├── MES - Mes del control
 ├── HORAS_TRABAJADAS - Horas trabajadas en el mes
 ├── HORAS_EXTRAS - Horas extras trabajadas
-└── HORAS_FALTANTES - Horas faltantes
+├── HORAS_FALTANTES - Horas faltantes
+├── created_at - Timestamp Laravel
+└── updated_at - Timestamp Laravel
 
 2.3 ANEXOS DE EVENTOS Y OPERACIONES
 ------------------------------------
@@ -128,7 +168,9 @@ osgo_anexo
 ├── RUTAGRAMA_IMAGEN - Imagen del rutagrama
 ├── NOTAS_RUTAGRAMA - Notas del rutagrama
 ├── ESTADO - Estado del anexo
-└── CREADO_POR - Usuario que creó el anexo
+├── CREADO_POR - Usuario que creó el anexo
+├── created_at - Timestamp Laravel
+└── updated_at - Timestamp Laravel
 
 ESTADOS DISPONIBLES:
 - PLANIFICADO: Anexo en fase de planificación
@@ -143,7 +185,9 @@ osgo_anexo_detalle
 ├── RESPONSABLE - Responsable asignado
 ├── FUNCION - Función específica
 ├── PUESTO_SERVICIO - Puesto de servicio
-└── OBSERVACION - Observaciones
+├── OBSERVACION - Observaciones
+├── created_at - Timestamp Laravel
+└── updated_at - Timestamp Laravel
 
 osgo_anexo_recurso
 ├── ID_ANEXO_RECURSO (PK) - Identificador único
@@ -162,17 +206,24 @@ osgo_recursos
 ├── ID_RECURSO (PK) - Identificador único
 ├── NOMBRE_RECURSO - Nombre del recurso
 ├── TIPO_RECURSO - Tipo de recurso
+├── PLACA - Placa del vehículo
 ├── DESCRIPCION - Descripción detallada
+├── DESCRIPCION_FUNCION - Descripción de la función
 ├── UNIDAD_MEDIDA - Unidad de medida
+├── GRUPO_ASIGNADO - Grupo asignado
+├── HORARIO_DISPONIBILIDAD - Horario de disponibilidad
+├── REQUIERE_CONDUCTOR - Si requiere conductor (boolean)
+├── REQUIERE_ACOMPANANTE - Si requiere acompañante (boolean)
+├── ESTADO_OPERATIVO - Estado operativo (DISPONIBLE, EN_USO, etc.)
 ├── ACTIVO - Estado activo/inactivo
 ├── created_at - Timestamp de creación
 └── updated_at - Timestamp de actualización
 
 TIPOS DE RECURSOS DISPONIBLES:
-- PATRULLERO: Vehículos patrulleros
-- MOTOCICLETA: Motocicletas
+- PATRULLERO: Vehículos patrulleros (T1 IMA1300, T2 IMA1506, T3 IMA1383)
+- MOTOCICLETA: Motocicletas (GA611K, GA616K)
 - PASOLA: Pasolas
-- GRUA: Grúas
+- GRUA: Grúas (IMA-1289)
 - TANGO: Vehículos tango
 - CONO: Conos de seguridad
 - VARILLA: Varillas reflectivas
@@ -188,17 +239,30 @@ TIPOS DE RECURSOS DISPONIBLES:
 osgo_vehiculo
 ├── ID_VEHICULO (PK) - Identificador único
 ├── PLACA - Placa del vehículo
-└── ACTIVO - Estado activo/inactivo
+├── ACTIVO - Estado activo/inactivo
+├── created_at - Timestamp Laravel
+└── updated_at - Timestamp Laravel
 
 osgo_tipo_vehiculo
 ├── ID_TIPO_VEHICULO (PK) - Identificador único
-└── TIPO_VEHICULO - Tipo de vehículo
+├── TIPO_VEHICULO - Tipo de vehículo
+├── created_at - Timestamp Laravel
+└── updated_at - Timestamp Laravel
 
 osgo_servicio_grua
 ├── ID_SERVICIO_GRUA (PK) - Identificador único
 ├── PROPIETARIO - Propietario de la grúa
 ├── CONTRATO - Número de contrato
-└── TELEFONO - Teléfono de contacto
+├── TELEFONO - Teléfono de contacto
+├── created_at - Timestamp Laravel
+└── updated_at - Timestamp Laravel
+
+osgo_orden_servicio_grua
+├── ID_ORDEN_SERVICIO_GRUA (PK) - Identificador único
+├── ID_ORDEN_SERVICIO (FK) - Referencia a orden
+├── ID_SERVICIO_GRUA (FK) - Referencia a servicio de grúa
+├── created_at - Timestamp Laravel
+└── updated_at - Timestamp Laravel
 
 2.5 HORARIOS Y SECTORES
 ------------------------
@@ -210,25 +274,25 @@ osgo_horarios
 ├── HORA_FIN - Hora de fin (0-23)
 ├── descripcion - Descripción del horario
 ├── duracion_horas - Duración en horas
-└── ACTIVO - Estado activo/inactivo
+├── ACTIVO - Estado activo/inactivo
+├── created_at - Timestamp Laravel
+└── updated_at - Timestamp Laravel
 
 HORARIOS DISPONIBLES:
-- 06:00-14:00 (Turno mañana)
-- 06:00-12:00 (Medio turno mañana)
-- 14:00-22:00 (Turno tarde)
-- 08:00-12:00 (Medio turno mañana)
-- 22:00-06:00 (Turno noche)
-- 12:00-20:00 (Turno tarde)
-- 13:00-21:00 (Turno tarde)
-- 14:00-20:00 (Medio turno tarde)
-- 22:00-04:00 (Turno noche)
+- TURNO MAÑANA: 06:00-14:00 (8 horas)
+- TURNO TARDE: 14:00-22:00 (8 horas)
+- TURNO NOCHE: 22:00-06:00 (8 horas)
+- TURNO ESPECIAL: 12:00-20:00 (8 horas)
+- TURNO ADMINISTRATIVO: 08:00-17:00 (9 horas)
 
 osgo_sectores
 ├── ID_SECTOR (PK) - Identificador único
 ├── SECTOR - Nombre del sector
 ├── DISTRITO - Distrito
 ├── CANTON - Cantón
-└── ACTIVO - Estado activo/inactivo
+├── ACTIVO - Estado activo/inactivo
+├── created_at - Timestamp Laravel
+└── updated_at - Timestamp Laravel
 
 SECTORES DISPONIBLES:
 - Ibarra Centro (Ibarra, Ibarra)
@@ -245,234 +309,467 @@ SECTORES DISPONIBLES:
 
 osgo_users
 ├── ID_USUARIO (PK) - Identificador único
-├── name - Nombre del usuario
-├── email - Email del usuario
+├── NAME - Nombre del usuario
+├── EMAIL - Email del usuario
 ├── email_verified_at - Fecha de verificación
 ├── password - Contraseña encriptada
+├── ROL_ID (FK) - Referencia al rol del usuario
 ├── remember_token - Token de recordar sesión
 ├── created_at - Timestamp de creación
 └── updated_at - Timestamp de actualización
 
+osgo_roles
+├── ID (PK) - Identificador único
+├── NOMBRE - Nombre del rol
+├── DESCRIPCION - Descripción del rol
+├── PERMISOS - Permisos del rol (JSON)
+├── ACTIVO - Estado activo/inactivo
+├── CREATED_AT - Timestamp de creación
+├── UPDATED_AT - Timestamp de actualización
+└── DELETED_AT - Timestamp de eliminación (SoftDeletes)
+
+ROLES DISPONIBLES:
+- RESPONSABLE_OPERATIVO: Rol para responsables operativos
+- JEFE_DISTRITO: Rol para jefes de distrito
+- ADMIN: Rol de administrador del sistema
+
 USUARIOS ACTUALES:
-- Jeremy Flores (jerxav101@gmail.com)
-- Test User (test@example.com)
-- Esteban Aulestia (aulestiaesteban8@gmail.com)
+- Jeremy Flores (jerxav101@gmail.com) - RESPONSABLE_OPERATIVO
+- Test User (test@example.com) - RESPONSABLE_OPERATIVO
+- Esteban Aulestia (aulestiaesteban8@gmail.com) - RESPONSABLE_OPERATIVO
+
+2.7 TABLAS DE SOPORTE LARAVEL
+------------------------------
+
+migrations - Control de migraciones de Laravel
+sessions - Sesiones de usuarios
+password_reset_tokens - Tokens de recuperación de contraseña
+failed_jobs - Jobs fallidos
+jobs - Cola de trabajos
+job_batches - Lotes de trabajos
+cache - Cache de aplicación
+cache_locks - Bloqueos de cache
 
 ================================================================================
-3. TABLAS DE SOPORTE (SIN PREFIJO osgo_)
+3. BASE DE DATOS SISTEMA_PRINCIPAL (CONSULTA DE DATOS)
 ================================================================================
+
+PROPÓSITO: Obtener datos de referencia del sistema principal (SOLO LECTURA)
+CONEXIÓN: 'sistema_principal' en config/database.php
+ARCHIVO ORIGEN: sistema_principal.sql
 
 3.1 PERSONAL Y FUNCIONES
 -------------------------
 
-personas
+personas (TABLA DE REFERENCIA)
 ├── ID_PERSONA (PK) - Identificador único
 ├── NOMBRES - Nombres de la persona
 ├── APELLIDOS - Apellidos de la persona
 ├── CODIGO_AGENTE - Código único del agente
 └── [Otros campos de información personal]
 
-funciones
+**USO EN OSGO**: Para obtener listados de personal disponible y asignar responsables a órdenes de servicio.
+
+funciones (TABLA DE REFERENCIA)
 ├── ID_FUNCION (PK) - Identificador único
 ├── FUNCION - Nombre de la función
 └── [Otros campos de la función]
 
+**USO EN OSGO**: Para parametrizar funciones disponibles en el sistema y asignar personal según su función.
+
 3.2 GRUPOS Y TIPOS
 ------------------
 
-grupo_operativo
+grupo_operativo (TABLA DE REFERENCIA)
 ├── ID_GRUPO_OPERATIVO (PK) - Identificador único
 ├── NOMBRE_GRUPO - Nombre del grupo
 └── [Otros campos del grupo]
 
-tipo_grupo
+**USO EN OSGO**: Para obtener grupos operativos existentes y estructurar la organización.
+
+tipo_grupo (TABLA DE REFERENCIA)
 ├── ID_TIPO_GRUPO (PK) - Identificador único
 └── TIPO_GRUPO - Tipo de grupo
+
+**USO EN OSGO**: Para clasificar tipos de grupos operativos.
 
 3.3 INDISPONIBILIDADES
 -----------------------
 
-indisponibilidad
+indisponibilidad (TABLA DE REFERENCIA)
 ├── ID_INDISPONIBILIDAD (PK) - Identificador único
 ├── ID_PERSONA (FK) - Referencia a persona
 ├── FECHA_INICIO - Fecha de inicio
 ├── FECHA_FIN - Fecha de fin
 └── MOTIVO - Motivo de la indisponibilidad
 
-tipo_indisponibilidad
+**USO EN OSGO**: Para verificar disponibilidad de personal antes de asignaciones.
+
+tipo_indisponibilidad (TABLA DE REFERENCIA)
 ├── ID_TIPO_INDISPONIBILIDAD (PK) - Identificador único
 └── TIPO_INDISPONIBILIDAD - Tipo de indisponibilidad
+
+**USO EN OSGO**: Para categorizar tipos de indisponibilidades del personal.
 
 3.4 DISTRITOS Y SISTEMAS
 -------------------------
 
-distritos_agentes
+distritos_agentes (TABLA DE REFERENCIA)
 ├── ID_DISTRITO_AGENTE (PK) - Identificador único
 ├── DISTRITO - Nombre del distrito
 └── [Otros campos del distrito]
 
-sistemas
+**USO EN OSGO**: Para obtener información de distritos y estructuras organizacionales.
+
+sistemas (TABLA DE REFERENCIA)
 ├── ID_SISTEMA (PK) - Identificador único
 ├── NOMBRE_SISTEMA - Nombre del sistema
 └── [Otros campos del sistema]
 
+**USO EN OSGO**: Para integración con otros sistemas de la organización.
+
 ================================================================================
-4. RELACIONES PRINCIPALES
+4. RELACIONES ENTRE BASES DE DATOS
 ================================================================================
 
-4.1 JERARQUÍA DE ÓRDENES DE SERVICIO
--------------------------------------
-osgo_orden_servicio
+4.1 REFERENCIAS CRUZADAS (Cross-Database)
+------------------------------------------
+
+OSGO → SISTEMA_PRINCIPAL (Solo consulta):
+├── osgo.osgo_detalle_orden_servicio.ID_FUNCION → sistema_principal.funciones.ID_FUNCION
+├── osgo.osgo_control_horas.ID_PERSONA → sistema_principal.personas.ID_PERSONA
+└── [Otras referencias según necesidades]
+
+4.2 RELACIONES INTERNAS OSGO
+-----------------------------
+
+osgo_orden_servicio (MAESTRO)
 ├── 1:N → osgo_detalle_orden_servicio
 ├── 1:N → osgo_anexo
 ├── 1:N → osgo_historial_horas
 └── N:1 → osgo_estado_orden
 
-4.2 JERARQUÍA DE ANEXOS
-------------------------
 osgo_anexo
 ├── 1:N → osgo_anexo_detalle
 ├── 1:N → osgo_anexo_recurso
 └── N:1 → osgo_orden_servicio
 
-4.3 CONTROL DE HORAS
----------------------
 osgo_control_horas
 ├── 1:N → osgo_historial_horas
-└── N:1 → personas
+└── N:1 → sistema_principal.personas (Cross-DB)
 
-4.4 RECURSOS Y ASIGNACIONES
-----------------------------
-osgo_recursos
-└── 1:N → osgo_anexo_recurso
+osgo_users
+└── N:1 → osgo_roles
 
-================================================================================
-5. ÍNDICES Y OPTIMIZACIONES
-================================================================================
+4.3 INTEGRIDAD REFERENCIAL
+---------------------------
 
-ÍNDICES PRINCIPALES:
-- osgo_orden_servicio.FECHA (para consultas por fecha)
-- osgo_orden_servicio.CREADO_POR (para consultas por usuario)
-- osgo_orden_servicio.ID_ESTADO_ORDEN (para filtros por estado)
-- osgo_control_horas.ID_PERSONA (para consultas por persona)
-- osgo_control_horas.ESTADO (para filtros por estado)
-- osgo_anexo.FECHA (para consultas por fecha)
-- osgo_anexo.ESTADO (para filtros por estado)
-- osgo_anexo.TIPO_ANEXO (para filtros por tipo)
-
-================================================================================
-6. DATOS DE CONFIGURACIÓN
-================================================================================
-
-6.1 ESTADOS DEL SISTEMA
-------------------------
-- Estados de Orden: 5 estados configurados
-- Estados de Control de Horas: 3 estados configurados
-- Estados de Anexos: 4 estados configurados
-
-6.2 HORARIOS PREDEFINIDOS
---------------------------
-- 9 horarios diferentes configurados
-- Cobertura de 24 horas con diferentes turnos
-- Duración variable según necesidades operativas
-
-6.3 RECURSOS OPERATIVOS
-------------------------
-- 15 tipos de recursos diferentes
-- Categorías: Vehículos, Señalización, Comunicación, Seguridad
-- Unidades de medida estandarizadas
-
-6.4 SECTORES GEOGRÁFICOS
--------------------------
-- 8 sectores configurados
-- Cobertura de Ibarra y Otavalo
-- Organización por distritos y cantones
-
-================================================================================
-7. INTEGRIDAD REFERENCIAL
-================================================================================
-
-RESTRICCIONES DE CLAVES FORÁNEAS:
+INTERNAS (Mismo BD):
 - osgo_orden_servicio.ID_ESTADO_ORDEN → osgo_estado_orden.ID_ESTADO_ORDEN
-- osgo_anexo.ID_ORDEN_SERVICIO → osgo_orden_servicio.ID_ORDEN_SERVICIO
-- osgo_anexo_detalle.ID_ANEXO → osgo_anexo.ID_ANEXO
-- osgo_anexo_recurso.ID_ANEXO → osgo_anexo.ID_ANEXO
-- osgo_anexo_recurso.ID_RECURSO → osgo_recursos.ID_RECURSO
-- osgo_control_horas.ID_PERSONA → personas.ID_PERSONA
-- osgo_historial_horas.ID_CONTROL_HORAS → osgo_control_horas.ID_CONTROL_HORAS
-- osgo_historial_horas.ID_ORDEN_SERVICIO → osgo_orden_servicio.ID_ORDEN_SERVICIO
 - osgo_detalle_orden_servicio.ID_ORDEN_SERVICIO → osgo_orden_servicio.ID_ORDEN_SERVICIO
-- osgo_detalle_orden_servicio.ID_FUNCION → funciones.ID_FUNCION
+- osgo_anexo.ID_ORDEN_SERVICIO → osgo_orden_servicio.ID_ORDEN_SERVICIO
+- osgo_users.ROL_ID → osgo_roles.ID
+
+EXTERNAS (Cross-Database) - Validación por código:
+- osgo_detalle_orden_servicio.ID_FUNCION → sistema_principal.funciones.ID_FUNCION
+- osgo_control_horas.ID_PERSONA → sistema_principal.personas.ID_PERSONA
 
 ================================================================================
-8. MIGRACIONES Y VERSIONADO
+5. CONFIGURACIÓN DE CONEXIONES
 ================================================================================
 
-TOTAL DE MIGRACIONES: 28
-FECHA DE ÚLTIMA MIGRACIÓN: 2025-09-12
+5.1 CONFIGURACIÓN EN config/database.php
+-----------------------------------------
 
-MIGRACIONES PRINCIPALES:
-- Creación de tablas base del sistema
-- Normalización de estructura de datos
-- Implementación de claves foráneas
-- Optimización de índices
-- Limpieza de columnas duplicadas
+'connections' => [
+    'osgo' => [
+        'driver' => 'mysql',
+        'host' => env('OSGO_DB_HOST', '127.0.0.1'),
+        'port' => env('OSGO_DB_PORT', '3306'),
+        'database' => env('OSGO_DB_DATABASE', 'osgo'),
+        'username' => env('OSGO_DB_USERNAME', 'root'),
+        'password' => env('OSGO_DB_PASSWORD', ''),
+        'charset' => 'utf8mb4',
+        'collation' => 'utf8mb4_unicode_ci',
+        'prefix' => '',
+        'strict' => true,
+        'engine' => null,
+    ],
+    
+    'sistema_principal' => [
+        'driver' => 'mysql',
+        'host' => env('SISTEMA_PRINCIPAL_DB_HOST', '127.0.0.1'),
+        'port' => env('SISTEMA_PRINCIPAL_DB_PORT', '3306'),
+        'database' => env('SISTEMA_PRINCIPAL_DB_DATABASE', 'sistema_principal'),
+        'username' => env('SISTEMA_PRINCIPAL_DB_USERNAME', 'root'),
+        'password' => env('SISTEMA_PRINCIPAL_DB_PASSWORD', ''),
+        'charset' => 'utf8mb4',
+        'collation' => 'utf8mb4_unicode_ci',
+        'prefix' => '',
+        'strict' => true,
+        'engine' => null,
+    ],
+]
+
+5.2 CONFIGURACIÓN EN .env
+-------------------------
+
+# Base de datos OSGO (Principal - Read/Write)
+DB_CONNECTION=osgo
+OSGO_DB_HOST=127.0.0.1
+OSGO_DB_PORT=3306
+OSGO_DB_DATABASE=osgo
+OSGO_DB_USERNAME=root
+OSGO_DB_PASSWORD=
+
+# Base de datos Sistema Principal (Consulta - Solo Read)
+SISTEMA_PRINCIPAL_DB_HOST=127.0.0.1
+SISTEMA_PRINCIPAL_DB_PORT=3306
+SISTEMA_PRINCIPAL_DB_DATABASE=sistema_principal
+SISTEMA_PRINCIPAL_DB_USERNAME=root
+SISTEMA_PRINCIPAL_DB_PASSWORD=
 
 ================================================================================
-9. SEEDERS Y DATOS INICIALES
+6. USO EN MODELOS ELOQUENT
 ================================================================================
 
-SEEDERS CONFIGURADOS:
-- DatabaseSeeder: Seeder principal
-- HorariosSeeder: Carga horarios predefinidos
-- RecursosSeeder: Carga recursos operativos
+6.1 MODELOS OSGO (Base de datos osgo)
+--------------------------------------
 
-DATOS INICIALES CARGADOS:
-- 5 estados de orden
-- 9 horarios de trabajo
-- 15 recursos operativos
-- 8 sectores geográficos
-- 3 usuarios del sistema
+// Modelo para tabla osgo_orden_servicio
+class OrdenServicio extends Model
+{
+    protected $connection = 'osgo';
+    protected $table = 'osgo_orden_servicio';
+    protected $primaryKey = 'ID_ORDEN_SERVICIO';
+}
+
+// Modelo para tabla osgo_users
+class User extends Authenticatable
+{
+    protected $connection = 'osgo';
+    protected $table = 'osgo_users';
+    protected $primaryKey = 'ID_USUARIO';
+}
+
+6.2 MODELOS SISTEMA_PRINCIPAL (Base de datos sistema_principal)
+---------------------------------------------------------------
+
+// Modelo para tabla personas (solo lectura)
+class Persona extends Model
+{
+    protected $connection = 'sistema_principal';
+    protected $table = 'personas';
+    protected $primaryKey = 'ID_PERSONA';
+    
+    // Solo operaciones de lectura
+    public $timestamps = false;
+}
+
+// Modelo para tabla funciones (solo lectura)
+class Funcione extends Model
+{
+    protected $connection = 'sistema_principal';
+    protected $table = 'funciones';
+    protected $primaryKey = 'ID_FUNCION';
+    
+    // Solo operaciones de lectura
+    public $timestamps = false;
+}
+
+6.3 RELACIONES CROSS-DATABASE
+------------------------------
+
+class DetalleOrdenServicio extends Model
+{
+    protected $connection = 'osgo';
+    
+    // Relación con modelo de otra BD
+    public function persona()
+    {
+        return $this->belongsTo(Persona::class, 'CODIGO_RESPONSABLE', 'CODIGO_AGENTE');
+    }
+    
+    public function funcion()
+    {
+        return $this->belongsTo(Funcione::class, 'ID_FUNCION', 'ID_FUNCION');
+    }
+}
 
 ================================================================================
-10. RECOMENDACIONES DE MANTENIMIENTO
+7. ESTRATEGIAS DE CONSULTA
 ================================================================================
 
-10.1 BACKUP REGULAR
---------------------
-- Backup diario de tablas principales
-- Backup semanal completo
-- Backup antes de migraciones importantes
+7.1 CONSULTAS LOCALES (OSGO)
+-----------------------------
 
-10.2 OPTIMIZACIÓN
+// Consultas normales en BD osgo
+$ordenes = OrdenServicio::with('detalles', 'estado')->get();
+$usuarios = User::where('ROL_ID', 1)->get();
+
+7.2 CONSULTAS CROSS-DATABASE
+-----------------------------
+
+// Obtener datos de sistema principal
+$personas = Persona::where('ACTIVO', 1)->get();
+$funciones = Funcione::all();
+
+// Combinar datos de ambas BD
+$orden = OrdenServicio::find(1);
+$detalles = $orden->detalles;
+foreach ($detalles as $detalle) {
+    $persona = Persona::find($detalle->ID_PERSONA);
+    $funcion = Funcione::find($detalle->ID_FUNCION);
+}
+
+7.3 CACHE PARA OPTIMIZACIÓN
+----------------------------
+
+// Cache de datos de referencia
+$funciones = cache()->remember('funciones_sistema_principal', 3600, function() {
+    return Funcione::all()->pluck('FUNCION', 'ID_FUNCION');
+});
+
+$personas = cache()->remember('personas_sistema_principal', 1800, function() {
+    return Persona::where('ACTIVO', 1)->get();
+});
+
+================================================================================
+8. MIGRACIÓN Y SEEDERS
+================================================================================
+
+8.1 MIGRACIÓN OSGO
 ------------------
-- Análisis mensual de rendimiento
-- Limpieza de registros históricos antiguos
-- Actualización de estadísticas de índices
 
-10.3 MONITOREO
----------------
-- Monitoreo de espacio en disco
-- Seguimiento de consultas lentas
+- Solo migrar tablas osgo_* en base de datos osgo
+- NO migrar tablas del sistema principal
+- Usar connection 'osgo' en migraciones
+
+php artisan migrate --database=osgo
+
+8.2 SEEDERS
+-----------
+
+// Seeder para BD osgo
+class OsgoSeeder extends Seeder
+{
+    public function run()
+    {
+        DB::connection('osgo')->table('osgo_estado_orden')->insert([...]);
+    }
+}
+
+// NO crear seeders para sistema_principal (solo lectura)
+
+================================================================================
+9. BACKUP Y MANTENIMIENTO
+================================================================================
+
+9.1 ESTRATEGIA DE BACKUP
+------------------------
+
+BD OSGO (Crítica - Backup diario):
+- Backup completo diario
+- Backup incremental cada 4 horas
+- Retención: 30 días
+
+BD SISTEMA_PRINCIPAL (Referencia - Backup semanal):
+- Backup semanal completo
+- Solo si hay cambios en datos maestros
+- Retención: 90 días
+
+9.2 MONITOREO
+-------------
+
+BD OSGO:
+- Monitoreo de espacio y rendimiento
+- Alertas de consultas lentas
 - Control de integridad referencial
 
-================================================================================
-11. CONCLUSIONES
-================================================================================
-
-La base de datos OSGO está bien estructurada y optimizada para:
-- Gestión eficiente de órdenes de servicio
-- Control preciso de horas trabajadas
-- Administración completa de anexos
-- Gestión de recursos operativos
-- Seguimiento de personal y asignaciones
-
-El sistema mantiene integridad referencial y está preparado para:
-- Escalabilidad futura
-- Integración con otros sistemas
-- Reportes y análisis avanzados
-- Auditoría y trazabilidad completa
+BD SISTEMA_PRINCIPAL:
+- Monitoreo de disponibilidad
+- Verificación de conexión
+- Alerta si la conexión falla
 
 ================================================================================
-FIN DE LA DOCUMENTACIÓN
+10. SEGURIDAD
 ================================================================================
+
+10.1 PERMISOS DE BASE DE DATOS
+------------------------------
+
+BD OSGO:
+- Usuario osgo: SELECT, INSERT, UPDATE, DELETE
+- Permisos completos en tablas osgo_*
+- Control de acceso por rol de usuario
+
+BD SISTEMA_PRINCIPAL:
+- Usuario osgo: SOLO SELECT
+- Sin permisos de escritura
+- Acceso de solo lectura garantizado
+
+10.2 VALIDACIONES
+-----------------
+
+- Validar integridad referencial en código
+- Verificar existencia de registros en sistema_principal
+- Manejo de errores de conexión entre BD
+- Logs de acceso cross-database
+
+================================================================================
+11. VENTAJAS DE LA ARQUITECTURA DUAL
+================================================================================
+
+✅ **SEPARACIÓN DE RESPONSABILIDADES**
+- Datos operativos en osgo
+- Datos de referencia en sistema_principal
+
+✅ **SEGURIDAD MEJORADA**
+- Solo lectura en sistema principal
+- Datos operativos protegidos
+
+✅ **ESCALABILIDAD**
+- Cada BD puede optimizarse independientemente
+- Mejor distribución de carga
+
+✅ **MANTENIMIENTO**
+- Backup independiente
+- Actualizaciones separadas
+- Menor impacto en cambios
+
+✅ **INTEGRIDAD**
+- Sistema principal intacto
+- Datos OSGO auto-contenidos
+
+================================================================================
+12. CONSIDERACIONES OPERATIVAS
+================================================================================
+
+12.1 SINCRONIZACIÓN
+-------------------
+
+- Los datos del sistema principal son maestros
+- OSGO mantiene referencias, no duplica datos
+- Validar integridad en tiempo real
+
+12.2 DISPONIBILIDAD
+-------------------
+
+- OSGO debe funcionar aunque sistema_principal no esté disponible
+- Cache de datos críticos de referencia
+- Manejo graceful de errores de conexión
+
+12.3 RENDIMIENTO
+----------------
+
+- Cache inteligente de datos de referencia
+- Consultas optimizadas cross-database
+- Índices apropiados en ambas BD
+
+================================================================================
+FIN DE LA DOCUMENTACIÓN - ARQUITECTURA DUAL
+================================================================================
+
+Esta documentación refleja la nueva arquitectura dual del sistema OSGO,
+separando claramente las responsabilidades de almacenamiento y consulta
+entre dos bases de datos independientes pero interconectadas.

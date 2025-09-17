@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 15-09-2025 a las 22:27:49
+-- Tiempo de generación: 17-09-2025 a las 18:47:22
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -20,6 +20,132 @@ SET time_zone = "+00:00";
 --
 -- Base de datos: `osgo`
 --
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `cache`
+--
+
+CREATE TABLE `cache` (
+  `key` varchar(255) NOT NULL,
+  `value` mediumtext NOT NULL,
+  `expiration` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `cache_locks`
+--
+
+CREATE TABLE `cache_locks` (
+  `key` varchar(255) NOT NULL,
+  `owner` varchar(255) NOT NULL,
+  `expiration` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `failed_jobs`
+--
+
+CREATE TABLE `failed_jobs` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `uuid` varchar(255) NOT NULL,
+  `connection` text NOT NULL,
+  `queue` text NOT NULL,
+  `payload` longtext NOT NULL,
+  `exception` longtext NOT NULL,
+  `failed_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `jobs`
+--
+
+CREATE TABLE `jobs` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `queue` varchar(255) NOT NULL,
+  `payload` longtext NOT NULL,
+  `attempts` tinyint(3) UNSIGNED NOT NULL,
+  `reserved_at` int(10) UNSIGNED DEFAULT NULL,
+  `available_at` int(10) UNSIGNED NOT NULL,
+  `created_at` int(10) UNSIGNED NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `job_batches`
+--
+
+CREATE TABLE `job_batches` (
+  `id` varchar(255) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `total_jobs` int(11) NOT NULL,
+  `pending_jobs` int(11) NOT NULL,
+  `failed_jobs` int(11) NOT NULL,
+  `failed_job_ids` longtext NOT NULL,
+  `options` mediumtext DEFAULT NULL,
+  `cancelled_at` int(11) DEFAULT NULL,
+  `created_at` int(11) NOT NULL,
+  `finished_at` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `migrations`
+--
+
+CREATE TABLE `migrations` (
+  `id` int(10) UNSIGNED NOT NULL,
+  `migration` varchar(255) NOT NULL,
+  `batch` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Volcado de datos para la tabla `migrations`
+--
+
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
+(1, '0001_01_01_000000_create_users_table', 1),
+(2, '0001_01_01_000001_create_cache_table', 1),
+(3, '0001_01_01_000002_create_jobs_table', 1),
+(4, '2025_09_16_092726_create_osgo_roles_table', 2),
+(5, '2025_09_16_094137_update_osgo_users_columns_to_uppercase', 3),
+(6, '2025_05_06_084712_change_fecha_actual_nullable_on_orden_servicio_table', 4),
+(7, '2025_05_22_142034_add_id_sector_to_detalle_orden_servicio_table', 4),
+(8, '2025_05_29_095052_add_id_funcion_to_detalle_orden_servicio_table', 4),
+(9, '2025_05_29_122618_add_id_funcion_to_detalle_orden_servicio_table', 4),
+(10, '2025_06_11_091837_drop_id_tipo_grupo_from_grupo_operativo', 4),
+(11, '2025_06_17_101033_create_servicio_grua_table', 4),
+(12, '2025_06_17_101035_create_orden_servicio_grua_table', 4),
+(13, '2025_06_30_151914_add_fk_grupo_operativo_to_funciones', 4),
+(14, '2025_09_11_100000_create_osgo_anexo_table', 4),
+(15, '2025_09_11_100100_create_osgo_anexo_detalle_table', 4),
+(16, '2025_09_11_100200_create_osgo_anexo_recurso_table', 4),
+(17, '2025_09_11_100300_create_osgo_control_horas_table', 4),
+(18, '2025_09_11_100400_create_osgo_historial_horas_table', 4),
+(19, '2025_09_11_100600_create_osgo_horarios_table', 4),
+(20, '2025_09_11_150000_rename_users_to_osgo_users', 4),
+(21, '2025_09_11_151000_add_fks_to_osgo_anexo_children', 4),
+(22, '2025_09_11_152000_normalize_osgo_database', 4),
+(23, '2025_09_11_153000_make_vehicles_resources_orphan', 4),
+(24, '2025_09_11_154000_fix_sessions_table_structure', 4),
+(25, '2025_09_11_156000_recreate_anexo_recurso_table', 4),
+(26, '2025_09_11_158000_clean_duplicate_columns', 4),
+(27, '2025_09_11_159000_add_missing_horarios_fields', 4),
+(28, '2025_09_11_161000_fix_database_improvements', 4),
+(29, '2025_09_12_135952_create_osgo_recursos_table', 4),
+(30, '2025_09_12_135956_modify_osgo_anexo_recurso_table', 4),
+(31, '2025_09_16_092722_rename_users_table_to_osgo_users_table', 4),
+(32, '2025_09_16_093323_drop_users_table', 4),
+(33, '2025_09_16_093926_ensure_osgo_roles_table_exists', 4);
 
 -- --------------------------------------------------------
 
@@ -157,7 +283,10 @@ INSERT INTO `osgo_estado_orden` (`ID_ESTADO_ORDEN`, `ESTADO_ORDEN`, `DESCRIPCION
 (2, 'Aprobada', 'Orden aprobada y lista para asignar recursos'),
 (3, 'En Curso', 'Orden en proceso de ejecución'),
 (4, 'Finalizada', 'Orden concluida exitosamente'),
-(5, 'Cancelada', 'Orden cancelada y no se realizará');
+(5, 'Cancelada', 'Orden cancelada y no se realizará'),
+(6, 'Pendiente', 'Orden pendiente de atención'),
+(7, 'Pendiente', 'Orden pendiente de atención'),
+(8, 'Pendiente', 'Orden pendiente de atención');
 
 -- --------------------------------------------------------
 
@@ -224,14 +353,6 @@ CREATE TABLE `osgo_orden_servicio` (
   `FECHA_ACTUAL` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Volcado de datos para la tabla `osgo_orden_servicio`
---
-
-INSERT INTO `osgo_orden_servicio` (`ID_ORDEN_SERVICIO`, `NRO_ORDEN`, `FECHA`, `DISTRITO`, `PROVINCIA`, `CIUDAD`, `CREADO_POR`, `ID_ESTADO_ORDEN`, `FECHA_ACTUAL`) VALUES
-(3, NULL, '2025-05-16', 'Centro', NULL, NULL, 'Sistema', 1, '2025-05-06 18:36:53'),
-(4, NULL, '2025-06-08', 'Sur', NULL, NULL, 'Sistema', 1, '2025-05-06 13:48:41');
-
 -- --------------------------------------------------------
 
 --
@@ -280,7 +401,33 @@ INSERT INTO `osgo_recursos` (`ID_RECURSO`, `NOMBRE_RECURSO`, `TIPO_RECURSO`, `DE
 (12, 'Megáfono', 'MEGAFONO', 'Megáfono para comunicación', 'UNIDAD', 1, '2025-09-12 20:22:58', '2025-09-12 20:22:58'),
 (13, 'Chaleco Reflectivo', 'CHALECO', 'Chaleco reflectivo de seguridad', 'UNIDAD', 1, '2025-09-12 20:22:58', '2025-09-12 20:22:58'),
 (14, 'Linterna', 'LINTERNA', 'Linterna para servicios nocturnos', 'UNIDAD', 1, '2025-09-12 20:22:58', '2025-09-12 20:22:58'),
-(15, 'Extintor', 'EXTINTOR', 'Extintor de incendios', 'UNIDAD', 1, '2025-09-12 20:22:58', '2025-09-12 20:22:58');
+(15, 'Extintor', 'EXTINTOR', 'Extintor de incendios', 'UNIDAD', 1, '2025-09-12 20:22:58', '2025-09-12 20:22:58'),
+(16, 'Recurso de Prueba', 'Humano', 'Recurso de prueba para desarrollo', 'Unidad', 1, '2025-09-15 21:36:36', '2025-09-15 21:36:36'),
+(17, 'Recurso de Prueba', 'Humano', 'Recurso de prueba para desarrollo', 'Unidad', 1, '2025-09-16 15:33:44', '2025-09-16 15:33:44');
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `osgo_roles`
+--
+
+CREATE TABLE `osgo_roles` (
+  `ID` bigint(20) UNSIGNED NOT NULL,
+  `NOMBRE` varchar(50) NOT NULL,
+  `DESCRIPCION` varchar(200) DEFAULT NULL,
+  `ACTIVO` tinyint(1) NOT NULL DEFAULT 1,
+  `CREATED_AT` timestamp NULL DEFAULT NULL,
+  `UPDATED_AT` timestamp NULL DEFAULT NULL,
+  `DELETED_AT` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Volcado de datos para la tabla `osgo_roles`
+--
+
+INSERT INTO `osgo_roles` (`ID`, `NOMBRE`, `DESCRIPCION`, `ACTIVO`, `CREATED_AT`, `UPDATED_AT`, `DELETED_AT`) VALUES
+(1, 'RESPONSABLE_OPERATIVO', 'Crea órdenes de servicio', 1, '2025-09-16 15:33:44', '2025-09-16 15:33:44', NULL),
+(2, 'JEFE_DISTRITO', 'Aprueba órdenes de servicio', 1, '2025-09-16 15:33:44', '2025-09-16 15:33:44', NULL);
 
 -- --------------------------------------------------------
 
@@ -342,23 +489,24 @@ CREATE TABLE `osgo_tipo_vehiculo` (
 
 CREATE TABLE `osgo_users` (
   `ID_USUARIO` int(11) NOT NULL,
-  `name` varchar(255) NOT NULL,
-  `email` varchar(255) NOT NULL,
-  `email_verified_at` timestamp NULL DEFAULT NULL,
-  `password` varchar(255) NOT NULL,
-  `remember_token` varchar(100) DEFAULT NULL,
-  `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL
+  `NAME` varchar(255) NOT NULL,
+  `EMAIL` varchar(255) NOT NULL,
+  `EMAIL_VERIFIED_AT` timestamp NULL DEFAULT NULL,
+  `PASSWORD` varchar(255) NOT NULL,
+  `ROL_ID` bigint(20) UNSIGNED DEFAULT NULL,
+  `REMEMBER_TOKEN` varchar(100) DEFAULT NULL,
+  `CREATED_AT` timestamp NULL DEFAULT NULL,
+  `UPDATED_AT` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Volcado de datos para la tabla `osgo_users`
 --
 
-INSERT INTO `osgo_users` (`ID_USUARIO`, `name`, `email`, `email_verified_at`, `password`, `remember_token`, `created_at`, `updated_at`) VALUES
-(1, 'Jeremy Flores', 'jerxav101@gmail.com', NULL, '$2y$12$Ef0JyTPNHpIYGyFwGFEjJeCv3/wdy4312hhJwoIAC2hOmeSQNoe2i', 'gZbuukuZJBEjFshIfyjDPKoYieG8WD8V7QQzMt0eiPyfRmrWqCqtOYBR4GP7', '2025-05-08 15:03:44', '2025-05-08 15:03:44'),
-(2, 'Test User', 'test@example.com', '2025-09-09 18:40:46', '$2y$12$zfa2RiT9o4LKaQCvPgnnIOghExBAb5F7vkKRA2HBRzUW8ae1MxhBG', 'TmMiiJR28C', '2025-09-09 18:40:46', '2025-09-09 18:40:46'),
-(3, 'Esteban Aulestia', 'aulestiaesteban8@gmail.com', '2025-09-09 18:42:58', '$2y$12$RBcESzo6Z8eQlXrX8neOuOpqbYX/bNpB4XHn3DP9jwvhSL2QWBGte', NULL, '2025-09-09 18:42:58', '2025-09-09 18:42:58');
+INSERT INTO `osgo_users` (`ID_USUARIO`, `NAME`, `EMAIL`, `EMAIL_VERIFIED_AT`, `PASSWORD`, `ROL_ID`, `REMEMBER_TOKEN`, `CREATED_AT`, `UPDATED_AT`) VALUES
+(1, 'Jeremy Flores', 'jerxav101@gmail.com', NULL, '$2y$12$Ef0JyTPNHpIYGyFwGFEjJeCv3/wdy4312hhJwoIAC2hOmeSQNoe2i', 1, 'gZbuukuZJBEjFshIfyjDPKoYieG8WD8V7QQzMt0eiPyfRmrWqCqtOYBR4GP7', '2025-05-08 15:03:44', '2025-05-08 15:03:44'),
+(2, 'Test User', 'test@example.com', '2025-09-09 18:40:46', '$2y$12$zfa2RiT9o4LKaQCvPgnnIOghExBAb5F7vkKRA2HBRzUW8ae1MxhBG', 1, 'TmMiiJR28C', '2025-09-09 18:40:46', '2025-09-09 18:40:46'),
+(3, 'Esteban Aulestia', 'aulestiaesteban8@gmail.com', '2025-09-09 18:42:58', '$2y$12$RBcESzo6Z8eQlXrX8neOuOpqbYX/bNpB4XHn3DP9jwvhSL2QWBGte', 1, NULL, '2025-09-09 18:42:58', '2025-09-09 18:42:58');
 
 -- --------------------------------------------------------
 
@@ -372,9 +520,74 @@ CREATE TABLE `osgo_vehiculo` (
   `ACTIVO` varchar(2) DEFAULT 'A'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `password_reset_tokens`
+--
+
+CREATE TABLE `password_reset_tokens` (
+  `email` varchar(255) NOT NULL,
+  `token` varchar(255) NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `sessions`
+--
+
+CREATE TABLE `sessions` (
+  `id` varchar(255) NOT NULL,
+  `user_id` bigint(20) UNSIGNED DEFAULT NULL,
+  `ip_address` varchar(45) DEFAULT NULL,
+  `user_agent` text DEFAULT NULL,
+  `payload` longtext NOT NULL,
+  `last_activity` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 --
 -- Índices para tablas volcadas
 --
+
+--
+-- Indices de la tabla `cache`
+--
+ALTER TABLE `cache`
+  ADD PRIMARY KEY (`key`);
+
+--
+-- Indices de la tabla `cache_locks`
+--
+ALTER TABLE `cache_locks`
+  ADD PRIMARY KEY (`key`);
+
+--
+-- Indices de la tabla `failed_jobs`
+--
+ALTER TABLE `failed_jobs`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `failed_jobs_uuid_unique` (`uuid`);
+
+--
+-- Indices de la tabla `jobs`
+--
+ALTER TABLE `jobs`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `jobs_queue_index` (`queue`);
+
+--
+-- Indices de la tabla `job_batches`
+--
+ALTER TABLE `job_batches`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indices de la tabla `migrations`
+--
+ALTER TABLE `migrations`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indices de la tabla `osgo_anexo`
@@ -449,6 +662,13 @@ ALTER TABLE `osgo_recursos`
   ADD PRIMARY KEY (`ID_RECURSO`);
 
 --
+-- Indices de la tabla `osgo_roles`
+--
+ALTER TABLE `osgo_roles`
+  ADD PRIMARY KEY (`ID`),
+  ADD UNIQUE KEY `osgo_roles_nombre_unique` (`NOMBRE`);
+
+--
 -- Indices de la tabla `osgo_sectores`
 --
 ALTER TABLE `osgo_sectores`
@@ -471,7 +691,8 @@ ALTER TABLE `osgo_tipo_vehiculo`
 --
 ALTER TABLE `osgo_users`
   ADD PRIMARY KEY (`ID_USUARIO`),
-  ADD UNIQUE KEY `osgo_users_email_unique` (`email`);
+  ADD UNIQUE KEY `osgo_users_email_unique` (`EMAIL`),
+  ADD KEY `fk_users_rol` (`ROL_ID`);
 
 --
 -- Indices de la tabla `osgo_vehiculo`
@@ -480,8 +701,40 @@ ALTER TABLE `osgo_vehiculo`
   ADD PRIMARY KEY (`ID_VEHICULO`);
 
 --
+-- Indices de la tabla `password_reset_tokens`
+--
+ALTER TABLE `password_reset_tokens`
+  ADD PRIMARY KEY (`email`);
+
+--
+-- Indices de la tabla `sessions`
+--
+ALTER TABLE `sessions`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `sessions_user_id_index` (`user_id`),
+  ADD KEY `sessions_last_activity_index` (`last_activity`);
+
+--
 -- AUTO_INCREMENT de las tablas volcadas
 --
+
+--
+-- AUTO_INCREMENT de la tabla `failed_jobs`
+--
+ALTER TABLE `failed_jobs`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT de la tabla `jobs`
+--
+ALTER TABLE `jobs`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT de la tabla `migrations`
+--
+ALTER TABLE `migrations`
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
 
 --
 -- AUTO_INCREMENT de la tabla `osgo_anexo`
@@ -523,7 +776,7 @@ ALTER TABLE `osgo_detalle_orden_servicio`
 -- AUTO_INCREMENT de la tabla `osgo_estado_orden`
 --
 ALTER TABLE `osgo_estado_orden`
-  MODIFY `ID_ESTADO_ORDEN` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `ID_ESTADO_ORDEN` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT de la tabla `osgo_historial_horas`
@@ -541,7 +794,7 @@ ALTER TABLE `osgo_horarios`
 -- AUTO_INCREMENT de la tabla `osgo_orden_servicio`
 --
 ALTER TABLE `osgo_orden_servicio`
-  MODIFY `ID_ORDEN_SERVICIO` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `ID_ORDEN_SERVICIO` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `osgo_orden_servicio_grua`
@@ -553,7 +806,13 @@ ALTER TABLE `osgo_orden_servicio_grua`
 -- AUTO_INCREMENT de la tabla `osgo_recursos`
 --
 ALTER TABLE `osgo_recursos`
-  MODIFY `ID_RECURSO` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `ID_RECURSO` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+
+--
+-- AUTO_INCREMENT de la tabla `osgo_roles`
+--
+ALTER TABLE `osgo_roles`
+  MODIFY `ID` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT de la tabla `osgo_sectores`
@@ -584,6 +843,16 @@ ALTER TABLE `osgo_users`
 --
 ALTER TABLE `osgo_vehiculo`
   MODIFY `ID_VEHICULO` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- Restricciones para tablas volcadas
+--
+
+--
+-- Filtros para la tabla `osgo_users`
+--
+ALTER TABLE `osgo_users`
+  ADD CONSTRAINT `fk_users_rol` FOREIGN KEY (`ROL_ID`) REFERENCES `osgo_roles` (`id`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

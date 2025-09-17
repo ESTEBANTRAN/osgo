@@ -14,6 +14,12 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        // Primero creamos los roles
+        $this->call([
+            RolesTableSeeder::class,
+        ]);
+        
+        // Luego ejecutamos los demás seeders
         $this->call([
             OsgoDatabaseSeeder::class,
             PrincipalDatabaseSeeder::class,

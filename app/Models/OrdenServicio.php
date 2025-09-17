@@ -73,7 +73,7 @@ class OrdenServicio extends Model
             'ID_ORDEN_SERVICIO',
             'ID_SERVICIO_GRUA'
         )
-            ->using(OrdenServicioGrua::class)
+            // ->using(OrdenServicioGrua::class) // Commented out - class doesn't exist
             ->withPivot('ID_ORDEN_GRUA');
     }
 

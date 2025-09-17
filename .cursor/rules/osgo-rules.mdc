@@ -1,111 +1,373 @@
----
-alwaysApply: true
----
 ================================================================================
                     REGLAS Y ACLARACIONES PARA EL DESARROLLO DE OSGO
-                    Sistema de Gestión Operativa
+                    Sistema de Gestión Operativa - Arquitectura Dual
 ================================================================================
 
 FECHA DE CREACIÓN: 2025-01-27
-VERSIÓN: 1.0
+VERSIÓN: 2.0 - ARQUITECTURA DUAL
 PROPÓSITO: Documentar todas las reglas, restricciones y aclaraciones que deben
-          seguirse durante el desarrollo del sistema OSGO y su base de datos.
+          seguirse durante el desarrollo del sistema OSGO con arquitectura dual
+          de bases de datos.
+
+ARQUITECTURA: Base de datos dual (osgo + sistema_principal)
 
 ================================================================================
-1. RESTRICCIONES DE BASE DE DATOS
+1. ARQUITECTURA DUAL DE BASES DE DATOS
 ================================================================================
 
-1.1 TABLAS DEL SISTEMA
------------------------
-- SOLO se pueden modificar tablas con prefijo "osgo_"
-- NO se pueden crear nuevas tablas
-- NO se pueden eliminar tablas existentes
-- Las tablas sin prefijo "osgo_" son de sistemas externos y NO se pueden modificar
+1.1 CONCEPTO FUNDAMENTAL
+------------------------
+El sistema OSGO opera con DOS bases de datos separadas e independientes:
 
-1.2 CAMPOS DE TABLAS OSGO
--------------------------
-- SÍ se pueden modificar campos de tablas existentes con prefijo "osgo_"
-- SÍ se pueden agregar nuevos campos a tablas existentes
-- SÍ se pueden eliminar campos de tablas existentes (con precaución)
-- NO se pueden modificar campos de tablas sin prefijo "osgo_"
+🗄️ **BASE DE DATOS OSGO** (osgo.sql)
+- PROPÓSITO: Almacenamiento principal del sistema OSGO
+- OPERACIONES: CREATE, READ, UPDATE, DELETE
+- CONEXIÓN: 'osgo' (por defecto)
+- RESPONSABILIDAD: Todos los datos operativos del sistema
 
-1.3 DATOS EN TABLAS EXTERNAS
-----------------------------
-- SÍ se pueden insertar datos de ejemplo en tablas externas
-- SÍ se pueden eliminar datos de tablas externas
-- NO se pueden modificar la estructura de tablas externas
+📊 **BASE DE DATOS SISTEMA_PRINCIPAL** (sistema_principal.sql)
+- PROPÓSITO: Fuente de datos de referencia
+- OPERACIONES: SOLO READ (consulta únicamente)
+- CONEXIÓN: 'sistema_principal'
+- RESPONSABILIDAD: Datos maestros del sistema principal
+
+1.2 SEPARACIÓN DE RESPONSABILIDADES
+-----------------------------------
+
+**ALMACENAMIENTO (BD osgo)**:
+✅ Todas las tablas con prefijo "osgo_"
+✅ Órdenes de servicio y sus detalles
+✅ Control de horas OSGO
+✅ Anexos de eventos y operaciones
+✅ Recursos operativos OSGO
+✅ Usuarios y roles del sistema OSGO
+✅ Configuraciones específicas del sistema
+
+**CONSULTA (BD sistema_principal)**:
+✅ Datos de personal (personas)
+✅ Funciones organizacionales
+✅ Grupos operativos
+✅ Indisponibilidades de personal
+✅ Estructura de distritos
+✅ Sistemas de la organización
 
 ================================================================================
-2. LÓGICA DE MAESTRO-DETALLE
+2. RESTRICCIONES DE BASE DE DATOS - ARQUITECTURA DUAL
 ================================================================================
 
-2.1 PRINCIPIOS FUNDAMENTALES
------------------------------
-- Respetar siempre las relaciones de integridad referencial
-- Las tablas maestras contienen datos de referencia
-- Las tablas de detalle contienen datos específicos que referencian a los maestros
-- Mantener consistencia en las claves foráneas
+2.1 RESTRICCIONES BD OSGO (Almacenamiento)
+-------------------------------------------
 
-2.2 ESTRUCTURA DE ÓRDENES DE SERVICIO
--------------------------------------
-MAESTRO: osgo_orden_servicio
+TABLAS PERMITIDAS:
+✅ CREAR nuevas tablas con prefijo "osgo_"
+✅ MODIFICAR tablas existentes con prefijo "osgo_"
+✅ ELIMINAR tablas con prefijo "osgo_" (con precaución)
+✅ Modificar campos de tablas "osgo_"
+✅ Agregar nuevos campos a tablas "osgo_"
+✅ Eliminar campos de tablas "osgo_" (con precaución)
+
+TABLAS LARAVEL (permitidas):
+✅ migrations, sessions, cache, jobs, etc.
+✅ Operaciones normales de Laravel
+
+❌ PROHIBIDO:
+❌ NO crear tablas sin prefijo "osgo_" (excepto Laravel)
+❌ NO duplicar datos del sistema principal
+
+2.2 RESTRICCIONES BD SISTEMA_PRINCIPAL (Solo consulta)
+-------------------------------------------------------
+
+✅ PERMITIDO:
+✅ SELECT en todas las tablas
+✅ Consultas JOIN entre tablas
+✅ Funciones de agregación (COUNT, SUM, etc.)
+✅ Consultas con filtros y ordenamientos
+
+❌ ESTRICTAMENTE PROHIBIDO:
+❌ INSERT - No insertar datos
+❌ UPDATE - No actualizar datos
+❌ DELETE - No eliminar datos
+❌ ALTER TABLE - No modificar estructura
+❌ DROP TABLE - No eliminar tablas
+❌ CREATE TABLE - No crear tablas
+❌ Cualquier operación de escritura
+
+2.3 MANEJO DE REFERENCIAS CRUZADAS
+-----------------------------------
+
+REFERENCIAS VÁLIDAS:
+✅ osgo.osgo_detalle_orden_servicio.ID_FUNCION → sistema_principal.funciones.ID_FUNCION
+✅ osgo.osgo_control_horas.ID_PERSONA → sistema_principal.personas.ID_PERSONA
+✅ Cualquier referencia lógica entre las BD
+
+IMPLEMENTACIÓN:
+✅ Validar integridad en código PHP/Laravel
+✅ NO usar FOREIGN KEY cross-database
+✅ Usar validaciones en modelos Eloquent
+✅ Implementar cache para optimización
+
+================================================================================
+3. LÓGICA DE MAESTRO-DETALLE - ARQUITECTURA DUAL
+================================================================================
+
+3.1 PRINCIPIOS FUNDAMENTALES ACTUALIZADOS
+------------------------------------------
+- Respetar relaciones de integridad referencial DENTRO de cada BD
+- Validar integridad referencial ENTRE BD mediante código
+- Las tablas maestras pueden estar en cualquiera de las dos BD
+- Mantener consistencia en referencias cruzadas
+- Implementar fallbacks cuando sistema_principal no esté disponible
+
+3.2 ESTRUCTURA DE ÓRDENES DE SERVICIO (ACTUALIZADA)
+----------------------------------------------------
+
+MAESTRO: osgo.osgo_orden_servicio (BD osgo)
 ├── ID_ORDEN_SERVICIO (PK)
 ├── NRO_ORDEN (único)
-├── FECHA
+├── FECHA, DIA_SEMANA, FECHA_COMPLETA
 ├── DISTRITO, PROVINCIA, CIUDAD
-├── ID_ESTADO_ORDEN (FK → osgo_estado_orden)
+├── TIPO_ORDEN, OPERACIONES, REVISION
+├── ID_ESTADO_ORDEN (FK → osgo.osgo_estado_orden)
+├── DISPOSICIONES_GENERALES, FORMATO
 └── Campos adicionales para parametrización
 
-DETALLE: osgo_detalle_orden_servicio
+DETALLE: osgo.osgo_detalle_orden_servicio (BD osgo)
 ├── ID_DET_ORDEN_SERVICIO (PK)
-├── ID_ORDEN_SERVICIO (FK → osgo_orden_servicio)
-├── ID_FUNCION (FK → funciones) - puede ser NULL
+├── ID_ORDEN_SERVICIO (FK → osgo.osgo_orden_servicio)
+├── ID_FUNCION (REF → sistema_principal.funciones) - validación por código
 ├── GRUPO_FUNCIONAL, FUNCION
 ├── RESPONSABLE, SECTOR
+├── HORARIO, TIPO_SERVICIO, PLACA_VEHICULO
+├── GRUPO_ASIGNADO, CIRCUITO, DESCRIPCION_RUTA
+├── TIPO_VEHICULO, REQUIERE_ACOMPANANTE, ACOMPANANTE
 └── Campos específicos del detalle
 
-2.3 RELACIONES CRÍTICAS
------------------------
-- osgo_orden_servicio.ID_ESTADO_ORDEN → osgo_estado_orden.ID_ESTADO_ORDEN
-- osgo_detalle_orden_servicio.ID_ORDEN_SERVICIO → osgo_orden_servicio.ID_ORDEN_SERVICIO
-- osgo_detalle_orden_servicio.ID_FUNCION → funciones.ID_FUNCION (puede ser NULL)
+3.3 RELACIONES CRÍTICAS ACTUALIZADAS
+-------------------------------------
+
+INTERNAS (Misma BD):
+✅ osgo.osgo_orden_servicio.ID_ESTADO_ORDEN → osgo.osgo_estado_orden.ID_ESTADO_ORDEN
+✅ osgo.osgo_detalle_orden_servicio.ID_ORDEN_SERVICIO → osgo.osgo_orden_servicio.ID_ORDEN_SERVICIO
+✅ osgo.osgo_users.ROL_ID → osgo.osgo_roles.ID
+
+CROSS-DATABASE (Validación por código):
+⚠️ osgo.osgo_detalle_orden_servicio.ID_FUNCION → sistema_principal.funciones.ID_FUNCION
+⚠️ osgo.osgo_control_horas.ID_PERSONA → sistema_principal.personas.ID_PERSONA
 
 ================================================================================
-3. PARAMETRIZACIÓN DE DATOS
+4. PARAMETRIZACIÓN DE DATOS - ARQUITECTURA DUAL
 ================================================================================
 
-3.1 PRINCIPIO FUNDAMENTAL
--------------------------
-"Menos libertad al usuario = mejor parametrización"
-- Los usuarios NO deben tener campos de texto libre
-- Todos los campos deben ser seleccionables desde registros predefinidos
-- Usar dropdowns, checkboxes, radio buttons en lugar de inputs de texto
-
-3.2 CAMPOS PARAMETRIZADOS OBLIGATORIOS
+4.1 PRINCIPIO FUNDAMENTAL ACTUALIZADO
 --------------------------------------
-- DISTRITO: Seleccionar de osgo_sectores.SECTOR
-- PROVINCIA: Valores fijos (IMABABURA, etc.)
-- CIUDAD: Valores fijos (IBARRA, etc.)
-- TIPO_ORDEN: Valores fijos (GENERAL, ESPECIAL)
-- OPERACIONES: Valores fijos (P3, P4, etc.)
-- GRUPO_FUNCIONAL: Valores fijos (GERENCIA, PATRULLEROS, MOTORIZADO, PEDESTRE)
-- TIPO_SERVICIO: Valores fijos (MOTORIZADO, PEDESTRE, ADMINISTRATIVO)
-- TIPO_VEHICULO: Seleccionar de osgo_tipo_vehiculo.TIPO_VEHICULO
-- HORARIO: Seleccionar de osgo_horarios.NOMBRE
+"Menos libertad al usuario = mejor parametrización"
+"Usar datos de referencia del sistema principal cuando sea posible"
 
-3.3 CAMPOS DE TEXTO LIBRE (MÍNIMOS)
------------------------------------
-- NOVEDADES: Descripción específica del servicio
-- OBSERVACION: Observaciones adicionales
-- DESCRIPCION_RUTA: Descripción detallada de la ruta
-- INSTRUCCIONES_ESPECIALES: Instrucciones específicas
+- Los usuarios NO deben tener campos de texto libre
+- PRIORIZAR datos del sistema principal para parametrización
+- Usar dropdowns poblados desde sistema_principal cuando corresponda
+- Cachear datos de referencia para mejor rendimiento
+
+4.2 CAMPOS PARAMETRIZADOS DESDE SISTEMA_PRINCIPAL
+--------------------------------------------------
+✅ FUNCIONES: Seleccionar de sistema_principal.funciones.FUNCION
+✅ PERSONAL: Seleccionar de sistema_principal.personas (NOMBRES + APELLIDOS)
+✅ GRUPOS_OPERATIVOS: Seleccionar de sistema_principal.grupo_operativo.NOMBRE_GRUPO
+✅ DISTRITOS: Seleccionar de sistema_principal.distritos_agentes.DISTRITO
+
+4.3 CAMPOS PARAMETRIZADOS DESDE BD OSGO
+----------------------------------------
+✅ SECTORES: Seleccionar de osgo.osgo_sectores.SECTOR
+✅ HORARIOS: Seleccionar de osgo.osgo_horarios.NOMBRE
+✅ TIPO_VEHICULO: Seleccionar de osgo.osgo_tipo_vehiculo.TIPO_VEHICULO
+✅ ESTADOS_ORDEN: Seleccionar de osgo.osgo_estado_orden.ESTADO_ORDEN
+✅ RECURSOS: Seleccionar de osgo.osgo_recursos.NOMBRE_RECURSO
+
+4.4 VALORES FIJOS (Sin BD)
+---------------------------
+✅ PROVINCIA: Valores fijos (IMBABURA, etc.)
+✅ CIUDAD: Valores fijos (IBARRA, etc.)
+✅ TIPO_ORDEN: Valores fijos (GENERAL, ESPECIAL)
+✅ OPERACIONES: Valores fijos (P3, P4, etc.)
+✅ GRUPO_FUNCIONAL: Valores fijos (GERENCIA, PATRULLEROS, MOTORIZADO, PEDESTRE)
+✅ TIPO_SERVICIO: Valores fijos (MOTORIZADO, PEDESTRE, ADMINISTRATIVO)
+
+4.5 CAMPOS DE TEXTO LIBRE (MÍNIMOS)
+------------------------------------
+⚠️ NOVEDADES: Descripción específica del servicio
+⚠️ OBSERVACION: Observaciones adicionales
+⚠️ DESCRIPCION_RUTA: Descripción detallada de la ruta
+⚠️ INSTRUCCIONES_ESPECIALES: Instrucciones específicas
 
 ================================================================================
-4. ESTRUCTURA DE DATOS DE EJEMPLO
+5. CONFIGURACIÓN DE CONEXIONES
 ================================================================================
 
-4.1 ÓRDENES DE SERVICIO
------------------------
+5.1 CONFIGURACIÓN OBLIGATORIA EN config/database.php
+-----------------------------------------------------
+
+'default' => env('DB_CONNECTION', 'osgo'),
+
+'connections' => [
+    'osgo' => [
+        'driver' => 'mysql',
+        'host' => env('OSGO_DB_HOST', '127.0.0.1'),
+        'port' => env('OSGO_DB_PORT', '3306'),
+        'database' => env('OSGO_DB_DATABASE', 'osgo'),
+        'username' => env('OSGO_DB_USERNAME', 'root'),
+        'password' => env('OSGO_DB_PASSWORD', ''),
+        'charset' => 'utf8mb4',
+        'collation' => 'utf8mb4_unicode_ci',
+        'prefix' => '',
+        'strict' => true,
+        'engine' => null,
+    ],
+    
+    'sistema_principal' => [
+        'driver' => 'mysql',
+        'host' => env('SISTEMA_PRINCIPAL_DB_HOST', '127.0.0.1'),
+        'port' => env('SISTEMA_PRINCIPAL_DB_PORT', '3306'),
+        'database' => env('SISTEMA_PRINCIPAL_DB_DATABASE', 'sistema_principal'),
+        'username' => env('SISTEMA_PRINCIPAL_DB_USERNAME', 'root'),
+        'password' => env('SISTEMA_PRINCIPAL_DB_PASSWORD', ''),
+        'charset' => 'utf8mb4',
+        'collation' => 'utf8mb4_unicode_ci',
+        'prefix' => '',
+        'strict' => true,
+        'engine' => null,
+    ],
+]
+
+5.2 CONFIGURACIÓN OBLIGATORIA EN .env
+--------------------------------------
+
+# Base de datos OSGO (Principal)
+DB_CONNECTION=osgo
+OSGO_DB_HOST=127.0.0.1
+OSGO_DB_PORT=3306
+OSGO_DB_DATABASE=osgo
+OSGO_DB_USERNAME=root
+OSGO_DB_PASSWORD=
+
+# Base de datos Sistema Principal (Solo consulta)
+SISTEMA_PRINCIPAL_DB_HOST=127.0.0.1
+SISTEMA_PRINCIPAL_DB_PORT=3306
+SISTEMA_PRINCIPAL_DB_DATABASE=sistema_principal
+SISTEMA_PRINCIPAL_DB_USERNAME=root
+SISTEMA_PRINCIPAL_DB_PASSWORD=
+
+================================================================================
+6. RESTRICCIONES DE DESARROLLO - ARQUITECTURA DUAL
+================================================================================
+
+6.1 MODELOS ELOQUENT
+--------------------
+
+MODELOS BD OSGO:
+✅ DEBEN especificar: protected $connection = 'osgo';
+✅ PUEDEN usar: timestamps, softDeletes, fillable, etc.
+✅ PUEDEN tener: relaciones, mutators, accessors
+
+class OrdenServicio extends Model
+{
+    protected $connection = 'osgo';
+    protected $table = 'osgo_orden_servicio';
+    protected $primaryKey = 'ID_ORDEN_SERVICIO';
+    
+    // Operaciones completas permitidas
+}
+
+MODELOS BD SISTEMA_PRINCIPAL:
+✅ DEBEN especificar: protected $connection = 'sistema_principal';
+❌ NO usar timestamps (public $timestamps = false;)
+❌ NO usar fillable/guarded para escritura
+❌ SOLO métodos de consulta
+
+class Persona extends Model
+{
+    protected $connection = 'sistema_principal';
+    protected $table = 'personas';
+    protected $primaryKey = 'ID_PERSONA';
+    public $timestamps = false;
+    
+    // SOLO operaciones de lectura
+}
+
+6.2 MIGRACIONES
+---------------
+
+BD OSGO:
+✅ Crear migraciones normalmente para tablas osgo_*
+✅ Usar connection 'osgo' si es necesario
+✅ php artisan migrate --database=osgo
+
+BD SISTEMA_PRINCIPAL:
+❌ NO crear migraciones
+❌ NO modificar estructura
+❌ La estructura está fija en sistema_principal.sql
+
+6.3 SEEDERS
+-----------
+
+BD OSGO:
+✅ Crear seeders para tablas osgo_*
+✅ Poblar datos de configuración del sistema
+
+class OsgoSeeder extends Seeder
+{
+    public function run()
+    {
+        DB::connection('osgo')->table('osgo_estado_orden')->insert([...]);
+    }
+}
+
+BD SISTEMA_PRINCIPAL:
+❌ NO crear seeders
+❌ Los datos están fijos en el sistema principal
+
+6.4 VALIDACIONES CROSS-DATABASE
+--------------------------------
+
+OBLIGATORIO en modelos OSGO que referencien sistema_principal:
+
+class DetalleOrdenServicio extends Model
+{
+    protected $connection = 'osgo';
+    
+    // Validar que ID_FUNCION existe en sistema_principal
+    public function validarFuncion()
+    {
+        if ($this->ID_FUNCION) {
+            return \App\Models\Funcione::find($this->ID_FUNCION) !== null;
+        }
+        return true;
+    }
+}
+
+IMPLEMENTAR en Form Requests:
+
+public function rules()
+{
+    return [
+        'ID_FUNCION' => [
+            'required',
+            function ($attribute, $value, $fail) {
+                if (!\App\Models\Funcione::find($value)) {
+                    $fail('La función seleccionada no existe.');
+                }
+            },
+        ],
+    ];
+}
+
+================================================================================
+7. ESTRUCTURA DE DATOS DE EJEMPLO - ARQUITECTURA DUAL
+================================================================================
+
+7.1 DATOS EN BD OSGO
+---------------------
+
+osgo_orden_servicio:
 - NRO_ORDEN: Secuencial (274, 273, 272, 271...)
 - FECHA: Formato YYYY-MM-DD
 - DIA_SEMANA: Valores fijos (MIÉRCOLES, JUEVES, VIERNES, SÁBADO...)
@@ -115,182 +377,326 @@ DETALLE: osgo_detalle_orden_servicio
 - REVISION: 00 (por defecto)
 - FORMATO: "11 julio 2022" (fijo)
 
-4.2 RECURSOS OPERATIVOS
------------------------
+osgo_recursos:
 - PATRULLEROS: T1 IMA1300, T2 IMA1506, T3 IMA1383
 - GRÚAS: IMA-1289
 - MOTORIZADOS: GA611K, GA616K
 - Cada recurso tiene: PLACA, TIPO_VEHICULO, GRUPO_ASIGNADO, HORARIO_DISPONIBILIDAD
 
-4.3 HORARIOS DE TRABAJO
------------------------
+osgo_horarios:
 - TURNO MAÑANA: 06:00-14:00 (8 horas)
 - TURNO TARDE: 14:00-22:00 (8 horas)
 - TURNO NOCHE: 22:00-06:00 (8 horas)
 - TURNO ESPECIAL: 12:00-20:00 (8 horas)
 - TURNO ADMINISTRATIVO: 08:00-17:00 (9 horas)
 
+7.2 DATOS EN BD SISTEMA_PRINCIPAL (Solo consulta)
+--------------------------------------------------
+
+personas:
+- Personal disponible con NOMBRES, APELLIDOS, CODIGO_AGENTE
+- Usado para parametrizar responsables en órdenes
+
+funciones:
+- Funciones organizacionales disponibles
+- Usado para asignar funciones específicas al personal
+
+grupo_operativo:
+- Grupos operativos de la organización
+- Usado para estructurar asignaciones
+
 ================================================================================
-5. CONVENCIONES DE NOMENCLATURA
+8. CONVENCIONES DE NOMENCLATURA - ARQUITECTURA DUAL
 ================================================================================
 
-5.1 TABLAS
-----------
+8.1 TABLAS BD OSGO
+------------------
 - Prefijo obligatorio: "osgo_"
 - Nombres en minúsculas con guiones bajos
 - Ejemplos: osgo_orden_servicio, osgo_detalle_orden_servicio
 
-5.2 CAMPOS
-----------
+8.2 TABLAS BD SISTEMA_PRINCIPAL
+-------------------------------
+- SIN prefijo (provienen del sistema principal)
+- Nombres tal como están en el sistema original
+- Ejemplos: personas, funciones, grupo_operativo
+
+8.3 CAMPOS BD OSGO
+------------------
 - Nombres en MAYÚSCULAS para campos principales
 - Nombres en camelCase para campos adicionales
+- created_at, updated_at para timestamps Laravel
 - Ejemplos: ID_ORDEN_SERVICIO, NRO_ORDEN, created_at
 
-5.3 VALORES
+8.4 CAMPOS BD SISTEMA_PRINCIPAL
+-------------------------------
+- Mantener nombres originales del sistema principal
+- No modificar nomenclatura existente
+- Ejemplos: ID_PERSONA, NOMBRES, APELLIDOS, CODIGO_AGENTE
+
+8.5 VALORES
 -----------
 - Valores fijos en MAYÚSCULAS
 - Ejemplos: "GENERAL", "MOTORIZADO", "PATRULLERO"
 
 ================================================================================
-6. RESTRICCIONES DE DESARROLLO
+9. CACHE Y OPTIMIZACIÓN - ARQUITECTURA DUAL
 ================================================================================
 
-6.1 MIGRACIONES
----------------
-- SOLO crear migraciones para tablas con prefijo "osgo_"
-- NO crear migraciones para tablas externas
-- Verificar estructura antes de crear migraciones
-- Usar updateOrInsert() en seeders para evitar duplicados
+9.1 CACHE OBLIGATORIO PARA DATOS SISTEMA_PRINCIPAL
+---------------------------------------------------
 
-6.2 SEEDERS
------------
-- Poblar tablas maestras PRIMERO
-- Poblar tablas de detalle DESPUÉS
-- Usar transacciones para operaciones complejas
-- Manejar claves foráneas correctamente
+// Cache datos de referencia frecuentemente usados
+$funciones = cache()->remember('funciones_sistema_principal', 3600, function() {
+    return \App\Models\Funcione::all()->pluck('FUNCION', 'ID_FUNCION');
+});
 
-6.3 VALIDACIONES
-----------------
-- Validar existencia de registros maestros antes de insertar detalles
-- Usar claves foráneas para mantener integridad
-- Manejar valores NULL apropiadamente
+$personas = cache()->remember('personas_activas_sistema_principal', 1800, function() {
+    return \App\Models\Persona::where('ACTIVO', 1)
+        ->orderBy('APELLIDOS')
+        ->orderBy('NOMBRES')
+        ->get();
+});
+
+9.2 ESTRATEGIAS DE CACHE
+------------------------
+
+DATOS DE REFERENCIA (sistema_principal):
+✅ Cache largo (1-4 horas)
+✅ Invalidar solo si detectas cambios
+✅ Cache por categorías (funciones, personas, grupos)
+
+DATOS OPERATIVOS (osgo):
+✅ Cache corto (5-30 minutos)
+✅ Invalidar en cada cambio
+✅ Cache selectivo por usuario/contexto
+
+9.3 MANEJO DE ERRORES DE CONEXIÓN
+----------------------------------
+
+try {
+    $personas = \App\Models\Persona::all();
+} catch (\Exception $e) {
+    // Usar cache como fallback
+    $personas = cache()->get('personas_fallback', collect());
+    
+    // Log del error
+    \Log::error('Error conectando a sistema_principal: ' . $e->getMessage());
+}
 
 ================================================================================
-7. CAMPOS AGREGADOS PARA PARAMETRIZACIÓN
+10. CONSIDERACIONES DE SEGURIDAD - ARQUITECTURA DUAL
 ================================================================================
 
-7.1 osgo_orden_servicio
------------------------
-- DIA_SEMANA: Día de la semana (MIÉRCOLES, JUEVES, etc.)
-- FECHA_COMPLETA: Fecha completa (2 DE ABRIL DE 2025)
-- TIPO_ORDEN: Tipo de orden (GENERAL, ESPECIAL)
-- OPERACIONES: Tipo de operaciones (P3, P4, etc.)
-- DISPOSICIONES_GENERALES: Disposiciones generales de la orden
-- REVISION: Número de revisión (00, 01, etc.)
-- FORMATO: Formato del documento (11 julio 2022)
-- EJEMPLAR_NUMERO: Número de ejemplar
+10.1 PERMISOS DE BASE DE DATOS
+------------------------------
 
-7.2 osgo_detalle_orden_servicio
+BD OSGO:
+✅ Usuario con permisos completos: SELECT, INSERT, UPDATE, DELETE
+✅ Restricciones por rol de usuario en la aplicación
+✅ Control de acceso granular por funcionalidad
+
+BD SISTEMA_PRINCIPAL:
+✅ Usuario con SOLO permisos de SELECT
+❌ Sin permisos de escritura (INSERT, UPDATE, DELETE)
+✅ Solo lectura garantizada a nivel de BD
+
+10.2 VALIDACIONES DE INTEGRIDAD
 -------------------------------
-- HORARIO: Horario de trabajo (06:00-14:00)
-- TIPO_SERVICIO: Tipo de servicio (MOTORIZADO, PEDESTRE, ADMINISTRATIVO)
-- PLACA_VEHICULO: Placa del vehículo asignado
-- GRUPO_ASIGNADO: Grupo asignado (GRUPO_A, GRUPO_B, etc.)
-- CIRCUITO: Circuito asignado (CIRCUITO UNO, DOS, etc.)
-- DESCRIPCION_RUTA: Descripción detallada de la ruta
-- TIPO_VEHICULO: Tipo de vehículo (PATRULLERO, GRUA, MOTORIZADO)
-- REQUIERE_ACOMPANANTE: Si requiere acompañante (boolean)
-- ACOMPANANTE: Nombre del acompañante
-- INSTRUCCIONES_ESPECIALES: Instrucciones especiales para el servicio
 
-7.3 osgo_recursos
------------------
-- PLACA: Placa del vehículo
-- TIPO_VEHICULO: Tipo de vehículo (PATRULLERO, GRUA, MOTORIZADO)
-- GRUPO_ASIGNADO: Grupo asignado
-- DESCRIPCION_FUNCION: Descripción de la función del recurso
-- HORARIO_DISPONIBILIDAD: Horario de disponibilidad
-- REQUIERE_CONDUCTOR: Si requiere conductor (boolean)
-- REQUIERE_ACOMPANANTE: Si requiere acompañante (boolean)
-- ESTADO_OPERATIVO: Estado operativo del recurso (DISPONIBLE, EN_USO, etc.)
+OBLIGATORIO:
+✅ Validar existencia de registros en sistema_principal antes de guardar
+✅ Manejo graceful de errores de conexión
+✅ Validaciones both-side (cliente y servidor)
+✅ Logs de operaciones cross-database
+
+class FormRequest extends Request
+{
+    public function rules()
+    {
+        return [
+            'responsable_id' => [
+                'required',
+                function ($attribute, $value, $fail) {
+                    try {
+                        if (!\App\Models\Persona::find($value)) {
+                            $fail('El responsable seleccionado no existe.');
+                        }
+                    } catch (\Exception $e) {
+                        $fail('Error validando el responsable.');
+                    }
+                },
+            ],
+        ];
+    }
+}
+
+10.3 AUDITORÍA
+--------------
+
+BD OSGO:
+✅ Registrar quién creó/modificó cada registro
+✅ Mantener historial de cambios con timestamps
+✅ Logs de operaciones importantes
+
+BD SISTEMA_PRINCIPAL:
+✅ Solo logs de consultas si es necesario
+✅ Monitoreo de disponibilidad
+✅ Alertas de desconexión
 
 ================================================================================
-8. CONSIDERACIONES DE SEGURIDAD
+11. TESTING - ARQUITECTURA DUAL
 ================================================================================
 
-8.1 VALIDACIÓN DE DATOS
+11.1 TESTS PARA BD OSGO
 -----------------------
-- Validar todos los inputs del usuario
-- Sanitizar datos antes de insertar en BD
-- Usar prepared statements para evitar SQL injection
 
-8.2 PERMISOS Y ROLES
---------------------
-- Implementar sistema de roles (ADMIN, SUPERVISOR, OPERADOR)
-- Restringir acceso a funciones según el rol
-- Validar permisos en cada operación
+✅ Unit tests para modelos osgo
+✅ Feature tests para funcionalidades completas
+✅ Tests de integridad referencial interna
+✅ Tests de validaciones
 
-8.3 AUDITORÍA
--------------
-- Registrar quién creó/modificó cada registro
-- Mantener historial de cambios
-- Timestamps de creación y modificación
+class OrdenServicioTest extends TestCase
+{
+    public function test_crear_orden_servicio()
+    {
+        $orden = OrdenServicio::create([
+            'NRO_ORDEN' => 275,
+            'FECHA' => '2025-01-27',
+            // ...
+        ]);
+        
+        $this->assertDatabaseHas('osgo_orden_servicio', [
+            'ID_ORDEN_SERVICIO' => $orden->ID_ORDEN_SERVICIO
+        ]);
+    }
+}
 
-================================================================================
-9. CONSIDERACIONES DE RENDIMIENTO
-================================================================================
+11.2 TESTS PARA INTEGRIDAD CROSS-DATABASE
+------------------------------------------
 
-9.1 ÍNDICES
------------
-- Crear índices en campos de búsqueda frecuente
-- Índices en claves foráneas
-- Índices compuestos para consultas complejas
+✅ Tests que validen referencias a sistema_principal
+✅ Tests de fallback cuando sistema_principal no está disponible
+✅ Tests de cache de datos de referencia
 
-9.2 CONSULTAS
--------------
-- Optimizar consultas con JOINs
-- Usar paginación para listas grandes
-- Evitar consultas N+1
-
-================================================================================
-10. MANTENIMIENTO Y EVOLUCIÓN
-================================================================================
-
-10.1 VERSIONADO
----------------
-- Mantener versiones de migraciones
-- Documentar cambios en estructura
-- Backup antes de cambios importantes
-
-10.2 TESTING
-------------
-- Crear tests para funcionalidades críticas
-- Tests de integridad de datos
-- Tests de validaciones
+class CrossDatabaseTest extends TestCase
+{
+    public function test_validar_funcion_existe()
+    {
+        // Mock sistema_principal no disponible
+        Config::set('database.connections.sistema_principal.host', 'localhost_fake');
+        
+        $this->expectException(\Exception::class);
+        
+        DetalleOrdenServicio::create([
+            'ID_FUNCION' => 999999, // No existe
+            // ...
+        ]);
+    }
+}
 
 ================================================================================
-11. NOTAS IMPORTANTES
+12. MIGRACIÓN DE DATOS (Si es necesario)
 ================================================================================
 
-11.1 CAMBIOS REALIZADOS
------------------------
-- Se agregaron campos de parametrización a tablas existentes
-- Se creó seeder con datos de ejemplo basados en documentos reales
-- Se respetó la lógica de maestro-detalle existente
-- Se mantuvieron las restricciones de tablas externas
+12.1 MIGRACIÓN DESDE ARQUITECTURA ÚNICA
+----------------------------------------
 
-11.2 PRÓXIMOS PASOS RECOMENDADOS
+Si hay datos existentes en arquitectura única:
+
+1. **Backup completo** de la BD original
+2. **Crear BD osgo** nueva
+3. **Migrar solo tablas osgo_*** a la nueva BD
+4. **Configurar conexión** sistema_principal
+5. **Actualizar modelos** con connections correctas
+6. **Validar integridad** cross-database
+7. **Testing completo** antes de producción
+
+12.2 SCRIPT DE MIGRACIÓN EJEMPLO
+---------------------------------
+
+-- Exportar tablas osgo_ de BD original
+mysqldump original_db osgo_orden_servicio osgo_detalle_orden_servicio [...] > osgo_tables.sql
+
+-- Importar a nueva BD osgo
+mysql osgo < osgo_tables.sql
+
+-- Configurar conexiones en Laravel
+-- Actualizar modelos
+-- Testing
+
+================================================================================
+13. MONITOREO Y ALERTAS - ARQUITECTURA DUAL
+================================================================================
+
+13.1 MONITOREO BD OSGO
+----------------------
+
+✅ Espacio en disco y crecimiento
+✅ Rendimiento de consultas
+✅ Integridad referencial
+✅ Backup automático y verificación
+✅ Logs de errores y excepciones
+
+13.2 MONITOREO BD SISTEMA_PRINCIPAL
+-----------------------------------
+
+✅ Disponibilidad de conexión
+✅ Tiempo de respuesta de consultas
+✅ Alertas de desconexión
+✅ Validación de datos de referencia
+
+13.3 ALERTAS CRÍTICAS
+---------------------
+
+🚨 BD osgo no disponible → CRÍTICO
+🚨 BD sistema_principal no disponible → ADVERTENCIA
+🚨 Inconsistencias de datos → IMPORTANTE
+🚨 Fallos de backup → CRÍTICO
+
+================================================================================
+14. VENTAJAS Y CONSIDERACIONES FINALES
+================================================================================
+
+14.1 VENTAJAS DE LA ARQUITECTURA DUAL
+--------------------------------------
+
+✅ **INDEPENDENCIA**: Sistema OSGO opera independientemente
+✅ **SEGURIDAD**: Solo lectura en sistema principal
+✅ **ESCALABILIDAD**: Cada BD se optimiza por separado
+✅ **MANTENIMIENTO**: Backup y actualizaciones independientes
+✅ **INTEGRIDAD**: Sistema principal intacto y protegido
+✅ **FLEXIBILIDAD**: Fácil integración con otros sistemas
+
+14.2 CONSIDERACIONES IMPORTANTES
 --------------------------------
-1. Crear interfaz de usuario para gestión de órdenes
-2. Implementar validaciones de parametrización
-3. Crear reportes basados en los datos estructurados
-4. Implementar sistema de roles y permisos
-5. Crear dashboard con métricas operativas
+
+⚠️ **Latencia**: Consultas cross-database pueden ser más lentas
+⚠️ **Complejidad**: Manejo de dos conexiones requiere más cuidado
+⚠️ **Dependencias**: Validar disponibilidad de sistema_principal
+⚠️ **Sincronización**: Datos de referencia pueden cambiar
+⚠️ **Testing**: Más complejo por la doble BD
+
+14.3 MEJORES PRÁCTICAS
+----------------------
+
+✅ Usar cache agresivamente para datos de sistema_principal
+✅ Implementar fallbacks para cuando sistema_principal no esté disponible
+✅ Validar integridad referencial en el código
+✅ Monitorear ambas conexiones constantemente
+✅ Documentar todas las referencias cross-database
+✅ Hacer backup independiente de cada BD
 
 ================================================================================
-FIN DEL DOCUMENTO
+FIN DEL DOCUMENTO - REGLAS ARQUITECTURA DUAL
 ================================================================================
 
 Este documento debe ser consultado en cada fase del desarrollo para asegurar
 el cumplimiento de las reglas establecidas y mantener la consistencia del
-sistema OSGO.
+sistema OSGO con arquitectura dual de bases de datos.
+
+RECORDATORIO: El sistema OSGO maneja DOS bases de datos:
+- osgo (almacenamiento) - READ/WRITE
+- sistema_principal (consulta) - SOLO READ
+
+Siempre validar las conexiones y manejar errores apropiadamente.

@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace App\Filament\Resources\OrdenServicioResource\Pages;
 
@@ -8,6 +9,7 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 
 class EditOrdenServicio extends EditRecord
 {
@@ -57,6 +59,15 @@ class EditOrdenServicio extends EditRecord
                     $this->redirect(static::getResource()::getUrl('index'));
                 }),
         ];
+    }
+
+    public static function canEdit(\Illuminate\Database\Eloquent\Model $record): bool
+    {
+        // Solo RESPONSABLE_OPERATIVO puede editar antes de aprobación (estado != 2)
+        if ($record->ID_ESTADO_ORDEN === 2) {
+            return false;
+        }
+        return Gate::allows('crear-orden-servicio');
     }
 
     /** Reutiliza el mismo método */

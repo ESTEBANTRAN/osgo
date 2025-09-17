@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace App\Filament\Resources\OrdenServicioResource\Pages;
 
@@ -8,6 +9,7 @@ use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 
 class CreateOrdenServicio extends CreateRecord
@@ -38,6 +40,11 @@ class CreateOrdenServicio extends CreateRecord
                 ->submit(null)          // evita el submit con validación HTML
                 ->action('guardarDraft'),
         ];
+    }
+
+    public static function canCreate(): bool
+    {
+        return Gate::allows('crear-orden-servicio');
     }
 
     /* -----------------------------------------------------------------
@@ -107,7 +114,7 @@ class CreateOrdenServicio extends CreateRecord
 
         /* ───── 3. Datos de cabecera ───── */
         $data = $raw + [
-            'CREADO_POR'      => Auth::user()->name,
+            'CREADO_POR'      => Auth::user()->NAME,
             'ID_ESTADO_ORDEN' => 1,
             'FECHA_ACTUAL'    => now(),
         ];
@@ -271,7 +278,7 @@ class CreateOrdenServicio extends CreateRecord
             'FECHA'      => $data['FECHA']     ?? $data['fecha']    ?? null,
             'DISTRITO'   => $data['DISTRITO']  ?? $data['distrito'] ?? null,
             'CANTON'     => $data['CANTON']    ?? $data['canton']   ?? null,
-            'CREADO_POR' => Auth::user()->name,
+            'CREADO_POR' => Auth::user()->NAME,
         ];
     }
 

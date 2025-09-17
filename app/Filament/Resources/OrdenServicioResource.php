@@ -40,8 +40,11 @@ use Filament\Tables\Columns\BadgeColumn;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\HtmlString;
 use Illuminate\Support\Str;
+use App\Models\TipoServicio;
+use App\Models\DisposicionGeneral;
 
 
 
@@ -71,12 +74,24 @@ class OrdenServicioResource extends Resource
                 ->toArray();
         });
 
-        // Optimización: Pre-cargar todas las opciones de personas por función
-        $personasPorFuncion = cache()->remember('personas_por_funcion_orden', 1800, function() {
+        // Optimización: Pre-cargar todas las opciones de personas por función usando vistas
+        $personasPorFuncion = cache()->remember('personas_por_funcion_orden_v2', 1800, function() {
             $opciones = [];
-            for ($i = 1; $i <= 20; $i++) {
-                $opciones[$i] = \App\Models\Persona::opcionesPorFuncion($i);
+            
+            // Usar vista optimizada para obtener solo personas disponibles
+            $personas_disponibles = DB::connection('sistema_principal')
+                ->table('v_personas_disponibles')
+                ->select('ID_PERSONA', 'ID_FUNCION', 'CODIGO_AGENTE', 'NOMBRE_COMPLETO')
+                ->get();
+            
+            foreach ($personas_disponibles as $persona) {
+                $funcion_id = $persona->ID_FUNCION;
+                if (!isset($opciones[$funcion_id])) {
+                    $opciones[$funcion_id] = [];
+                }
+                $opciones[$funcion_id][$persona->ID_PERSONA] = $persona->CODIGO_AGENTE . ' - ' . $persona->NOMBRE_COMPLETO;
             }
+            
             return $opciones;
         });
 
@@ -1222,14 +1237,263 @@ class OrdenServicioResource extends Resource
 
                                         Tab::make('Tipos de Servicio')
                                             ->schema([
-                                                TextInput::make('tipo_motorizado')->label('Servicio Motorizado'),
-                                                TextInput::make('tipo_pedestre')->label('Servicio Pedestre'),
+                                                Section::make('Servicios Seleccionados')
+                                                    ->description('Configura los tipos de servicio que aplicarán a esta orden')
+                                                    ->schema([
+                                                        Repeater::make('tipos_servicio_seleccionados')
+                                                            ->label('Servicios Incluídos')
+                                                            ->addActionLabel('Agregar Tipo de Servicio')
+                                                            ->schema([
+                                                                Select::make('id_tipo_servicio')
+                                                                    ->label('Tipo de Servicio')
+                                                                    ->options(function() {
+                                                                        return \App\Models\TipoServicio::where('ACTIVO', true)
+                                                                            ->pluck('TIPO_SERVICIO', 'ID_TIPO_SERVICIO')
+                                                                            ->toArray();
+                                                                    })
+                                                                    ->searchable()
+                                                                    ->required()
+                                                                    ->reactive()
+                                                                    ->afterStateUpdated(function($state, $set) {
+                                                                        if ($state) {
+                                                                            $tipo = \App\Models\TipoServicio::find($state);
+                                                                            if ($tipo) {
+                                                                                $set('requiere_vehiculo', $tipo->REQUIERE_VEHICULO);
+                                                                                $set('requiere_horario', $tipo->REQUIERE_HORARIO);
+                                                                                $set('requiere_sector', $tipo->REQUIERE_SECTOR);
+                                                                            }
+                                                                        }
+                                                                    }),
+
+                                                                Hidden::make('requiere_vehiculo'),
+                                                                Hidden::make('requiere_horario'),
+                                                                Hidden::make('requiere_sector'),
+
+                                                                Grid::make(2)->schema([
+                                                                    TextInput::make('horario')
+                                                                        ->label('Horario')
+                                                                        ->visible(fn(Get $get) => $get('requiere_horario'))
+                                                                        ->placeholder('Ej: 08:00 - 16:00'),
+
+                                                                    TextInput::make('placa_vehiculo')
+                                                                        ->label('Placa del Vehículo')
+                                                                        ->visible(fn(Get $get) => $get('requiere_vehiculo'))
+                                                                        ->placeholder('Ej: ABC-123'),
+                                                                ]),
+
+                                                                Grid::make(2)->schema([
+                                                                    TextInput::make('grupo_asignado')
+                                                                        ->label('Grupo Asignado')
+                                                                        ->placeholder('Ej: Grupo Alfa'),
+
+                                                                    TextInput::make('responsable')
+                                                                        ->label('Responsable')
+                                                                        ->placeholder('Nombre del responsable'),
+                                                                ]),
+
+                                                                TextInput::make('codigo_responsable')
+                                                                    ->label('Código del Responsable')
+                                                                    ->placeholder('Código de identificación'),
+
+                                                                Textarea::make('sector_descripcion')
+                                                                    ->label('Descripción del Sector')
+                                                                    ->visible(fn(Get $get) => $get('requiere_sector'))
+                                                                    ->rows(2)
+                                                                    ->placeholder('Describe el sector o área específica'),
+
+                                                                Textarea::make('novedades')
+                                                                    ->label('Novedades')
+                                                                    ->rows(2)
+                                                                    ->placeholder('Registra cualquier novedad o evento importante'),
+
+                                                                Textarea::make('observaciones')
+                                                                    ->label('Observaciones')
+                                                                    ->rows(2)
+                                                                    ->placeholder('Observaciones adicionales del servicio'),
+                                                            ])
+                                                            ->columns(1)
+                                                            ->columnSpanFull()
+                                                            ->defaultItems(0)
+                                                            ->collapsible(),
+                                                    ]),
                                             ]),
 
-                                        Tab::make('Permisos y Disposiciones')
+                                        Tab::make('Control de Personal')
                                             ->schema([
-                                                TextInput::make('permisos_franco')->label('Personal de Franco'),
-                                                TextInput::make('permisos_medico')->label('Permiso Médico'),
+                                                Section::make('Personal Franco y Vacaciones')
+                                                    ->description('Configura el personal que estará en franco, vacaciones u otras indisponibilidades')
+                                                    ->schema([
+                                                        Repeater::make('personal_control')
+                                                            ->label('Personal con Control Especial')
+                                                            ->addActionLabel('Agregar Personal')
+                                                            ->schema([
+                                                                Select::make('id_persona')
+                                                                    ->label('Personal')
+                                                                    ->options(function() {
+                                                                        return DB::connection('sistema_principal')
+                                                                            ->table('v_personas_disponibles')
+                                                                            ->select('ID_PERSONA', 'CODIGO_AGENTE', 'NOMBRE_COMPLETO')
+                                                                            ->get()
+                                                                            ->mapWithKeys(function($item) {
+                                                                                return [$item->ID_PERSONA => $item->CODIGO_AGENTE . ' - ' . $item->NOMBRE_COMPLETO];
+                                                                            })
+                                                                            ->toArray();
+                                                                    })
+                                                                    ->searchable()
+                                                                    ->required()
+                                                                    ->reactive()
+                                                                    ->afterStateUpdated(function($state, $set) {
+                                                                        if ($state) {
+                                                                            $persona = DB::connection('sistema_principal')
+                                                                                ->table('v_personas_disponibles')
+                                                                                ->where('ID_PERSONA', $state)
+                                                                                ->first();
+                                                                            if ($persona) {
+                                                                                $set('codigo_agente', $persona->CODIGO_AGENTE);
+                                                                                $set('nombre_completo', $persona->NOMBRE_COMPLETO);
+                                                                                $set('funcion', $persona->FUNCION ?? '');
+                                                                            }
+                                                                        }
+                                                                    }),
+
+                                                                Hidden::make('codigo_agente'),
+                                                                Hidden::make('nombre_completo'),
+                                                                Hidden::make('funcion'),
+
+                                                                Select::make('tipo_control')
+                                                                    ->label('Tipo de Control')
+                                                                    ->options([
+                                                                        'FRANCO' => 'FRANCO',
+                                                                        'VACACIONES' => 'VACACIONES',
+                                                                        'ENFERMEDAD' => 'ENFERMEDAD',
+                                                                        'LICENCIA' => 'LICENCIA',
+                                                                        'CAPACITACIÓN' => 'CAPACITACIÓN',
+                                                                        'COMISIÓN DE SERVICIOS' => 'COMISIÓN DE SERVICIOS',
+                                                                        'PERMISO PERSONAL' => 'PERMISO PERSONAL',
+                                                                        'SUB INSPECTOR FRANCO' => 'SUB INSPECTOR FRANCO',
+                                                                        'PERSONAL VACACIONES' => 'PERSONAL VACACIONES',
+                                                                        'PERSONAL ENFERMEDAD' => 'PERSONAL ENFERMEDAD',
+                                                                        'PERSONAL LICENCIA' => 'PERSONAL LICENCIA',
+                                                                        'PERSONAL CAPACITACIÓN' => 'PERSONAL CAPACITACIÓN',
+                                                                        'PERSONAL COMISIÓN' => 'PERSONAL COMISIÓN',
+                                                                        'PERSONAL PERMISO' => 'PERSONAL PERMISO',
+                                                                    ])
+                                                                    ->required()
+                                                                    ->searchable(),
+
+                                                                Grid::make(2)->schema([
+                                                                    DatePicker::make('fecha_desde')
+                                                                        ->label('Fecha Desde')
+                                                                        ->required()
+                                                                        ->default(now()),
+
+                                                                    DatePicker::make('fecha_hasta')
+                                                                        ->label('Fecha Hasta')
+                                                                        ->required()
+                                                                        ->default(now()->addDays(1)),
+                                                                ]),
+
+                                                                Textarea::make('observaciones')
+                                                                    ->label('Observaciones')
+                                                                    ->rows(2)
+                                                                    ->placeholder('Observaciones específicas sobre este control de personal')
+                                                                    ->columnSpanFull(),
+
+                                                                Toggle::make('activo')
+                                                                    ->label('Activo')
+                                                                    ->helperText('Marca si este control está activo')
+                                                                    ->default(true)
+                                                                    ->inline(false),
+                                                            ])
+                                                            ->columns(2)
+                                                            ->columnSpanFull()
+                                                            ->defaultItems(0)
+                                                            ->collapsible(),
+                                                    ]),
+
+                                                Section::make('Resumen de Personal')
+                                                    ->description('Vista resumida del personal con controles especiales')
+                                                    ->schema([
+                                                        Placeholder::make('resumen_personal')
+                                                            ->label('Personal con Control')
+                                                            ->content(function(Get $get) {
+                                                                $personal = $get('personal_control') ?? [];
+                                                                if (empty($personal)) {
+                                                                    return 'No hay personal con control especial configurado.';
+                                                                }
+                                                                
+                                                                $resumen = [];
+                                                                foreach ($personal as $item) {
+                                                                    if (!empty($item['nombre_completo'])) {
+                                                                        $resumen[] = "• {$item['nombre_completo']} - {$item['tipo_control']}";
+                                                                    }
+                                                                }
+                                                                
+                                                                return implode("\n", $resumen);
+                                                            })
+                                                            ->columnSpanFull(),
+                                                    ]),
+                                            ]),
+
+                                        Tab::make('Disposiciones Generales')
+                                            ->schema([
+                                                Section::make('Disposiciones Incluídas')
+                                                    ->description('Selecciona las disposiciones generales que se incluirán en esta orden')
+                                                    ->schema([
+                                                        Repeater::make('disposiciones_seleccionadas')
+                                                            ->label('Disposiciones de la Orden')
+                                                            ->addActionLabel('Agregar Disposición')
+                                                            ->schema([
+                                                                Select::make('id_disposicion')
+                                                                    ->label('Disposición General')
+                                                                    ->options(function() {
+                                                                        return \App\Models\DisposicionGeneral::where('ACTIVO', true)
+                                                                            ->get()
+                                                                            ->mapWithKeys(function($item) {
+                                                                                return [$item->ID_DISPOSICION => "#{$item->NUMERO_DISPOSICION} - {$item->TITULO}"];
+                                                                            })
+                                                                            ->toArray();
+                                                                    })
+                                                                    ->searchable()
+                                                                    ->required()
+                                                                    ->reactive()
+                                                                    ->afterStateUpdated(function($state, $set) {
+                                                                        if ($state) {
+                                                                            $disposicion = \App\Models\DisposicionGeneral::find($state);
+                                                                            if ($disposicion) {
+                                                                                $set('es_obligatoria', $disposicion->ES_OBLIGATORIA);
+                                                                                $set('categoria', $disposicion->CATEGORIA);
+                                                                                $set('contenido', $disposicion->CONTENIDO);
+                                                                            }
+                                                                        }
+                                                                    }),
+
+                                                                Hidden::make('es_obligatoria'),
+                                                                Hidden::make('categoria'),
+
+                                                                Toggle::make('incluida')
+                                                                    ->label('Incluir en la Orden')
+                                                                    ->helperText('Marca si esta disposición se incluye en la orden')
+                                                                    ->default(true)
+                                                                    ->inline(false),
+
+                                                                Textarea::make('contenido')
+                                                                    ->label('Contenido de la Disposición')
+                                                                    ->rows(3)
+                                                                    ->disabled()
+                                                                    ->dehydrated(false),
+
+                                                                Textarea::make('observaciones')
+                                                                    ->label('Observaciones Específicas')
+                                                                    ->rows(2)
+                                                                    ->placeholder('Observaciones específicas para esta disposición en esta orden')
+                                                                    ->columnSpanFull(),
+                                                            ])
+                                                            ->columns(2)
+                                                            ->columnSpanFull()
+                                                            ->defaultItems(0)
+                                                            ->collapsible(),
+                                                    ]),
                                             ]),
                                     ]),
                             ]),

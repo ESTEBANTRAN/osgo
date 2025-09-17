@@ -77,6 +77,36 @@ class OrdenServicio extends Model
             ->withPivot('ID_ORDEN_GRUA');
     }
 
+    // Relaciones para tipos de servicio y disposiciones (maestro-detalle optimizado)
+    public function tiposServicio()
+    {
+        return $this->belongsToMany(TipoServicio::class, 'osgo_servicios_orden', 'ID_ORDEN_SERVICIO', 'ID_TIPO_SERVICIO')
+                    ->withPivot([
+                        'ID_SERVICIO_ORDEN',
+                        'HORARIO',
+                        'PLACA_VEHICULO', 
+                        'GRUPO_ASIGNADO',
+                        'RESPONSABLE',
+                        'CODIGO_RESPONSABLE',
+                        'SECTOR_DESCRIPCION',
+                        'NOVEDADES',
+                        'OBSERVACIONES',
+                        'ACTIVO'
+                    ])
+                    ->withTimestamps();
+    }
+
+    public function disposicionesGenerales()
+    {
+        return $this->belongsToMany(DisposicionGeneral::class, 'osgo_disposiciones_orden', 'ID_ORDEN_SERVICIO', 'ID_DISPOSICION')
+                    ->withPivot([
+                        'ID_DISPOSICION_ORDEN',
+                        'INCLUIDA',
+                        'OBSERVACIONES'
+                    ])
+                    ->withTimestamps();
+    }
+
 
     //MÉTODOS INGRESADOS
 

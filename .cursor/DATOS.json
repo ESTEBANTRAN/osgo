@@ -1,0 +1,582 @@
+{
+  "detalle_orden_servicio": {
+    "descripcion": "Campos del detalle de orden de servicio que cambian por cada asignación",
+    "secciones_principales": {
+      "FUNCIONES_PRINCIPALES": {
+        "descripcion": "Funciones principales de la orden de servicio",
+        "campos": {
+          "FUNCION": {
+            "tipo": "varchar(100)",
+            "descripcion": "Nombre de la función",
+            "ejemplos": [
+              "GERENTE OPERATIVO DE TRÁNSITO",
+              "JEFE DE TRÁNSITO", 
+              "SUB JEFE DE TRÁNSITO",
+              "INSPECTOR DISTRITO CENTRO",
+              "OPERACIONES P3",
+              "INSPECTOR DISTRITO SUR",
+              "INSPECTOR DISTRITO NORTE",
+              "SUB INSPECTOR CANTÓN PIMAMPIRO",
+              "CONDUCTOR GERENTE OPERATIVO DE TRÁNSITO"
+            ],
+            "cambia_por_asignacion": true,
+            "es_requerido": true
+          },
+          "RESPONSABLE": {
+            "tipo": "varchar(100)",
+            "descripcion": "Nombre del responsable asignado",
+            "ejemplos": [
+              "TCNL.(SP) MARLON POZO",
+              "LOBATO GISELA",
+              "AMAGUAÑA ABIGAIL",
+              "VILLARRUEL ANDRÉS",
+              "IPIALES ANDRÉS",
+              "PASTRANA JEFFERSON",
+              "REYES SANTIAGO",
+              "CALDERON ANDERSON",
+              "TOBAR RICHARD"
+            ],
+            "cambia_por_asignacion": true,
+            "es_requerido": true
+          }
+        }
+      },
+      "JEFE_CONTROL_DISTRITO": {
+        "descripcion": "Sección de Jefe de Control de Distrito",
+        "campos": {
+          "HORARIO": {
+            "tipo": "varchar(50)",
+            "descripcion": "Horarios disponibles",
+            "ejemplos": ["06:00-14:00", "14:00-22:00", "12:00-20:00"],
+            "cambia_por_asignacion": true,
+            "es_requerido": true
+          },
+          "FUNCIONES": {
+            "tipo": "varchar(100)",
+            "descripcion": "Funciones específicas",
+            "ejemplos": [
+              "INSPECTOR DE CONTROL GENERAL",
+              "SUB INSPECTOR DE CONTROL GENERAL"
+            ],
+            "cambia_por_asignacion": true,
+            "es_requerido": true
+          },
+          "RESPONSABLE": {
+            "tipo": "varchar(100)",
+            "descripcion": "Responsables asignados",
+            "ejemplos": [
+              "ORDOÑEZ LUIS",
+              "PINEDA ANDRÉS", 
+              "COLIMBA JOSELYN",
+              "S/S"
+            ],
+            "cambia_por_asignacion": true,
+            "es_requerido": true
+          }
+        }
+      },
+      "PERSONAL_ADMINISTRATIVO": {
+        "descripcion": "Personal administrativo operativo",
+        "campos": {
+          "HORARIO": {
+            "tipo": "varchar(50)",
+            "descripcion": "Horarios administrativos",
+            "ejemplos": ["06:30-14:30", "08:00-17:00", "08:00-14:00"],
+            "cambia_por_asignacion": true,
+            "es_requerido": true
+          },
+          "FUNCIONES": {
+            "tipo": "varchar(100)",
+            "descripcion": "Funciones administrativas",
+            "ejemplos": [
+              "LOGISTICA P4",
+              "COORDINACIÓN SIS.ECU.911",
+              "COMISIONADO CENTRO DE RETENCÍON VEHICULAR",
+              "GESTOR DE DATOS",
+              "ESTADISTICAS GERENCIA OPERATIVA",
+              "PROCESO DE CHATARRIZACIÓN",
+              "CUSTODIA DE LAS INSTALACIONES DE LA EPM Y VERIFICAR VEHÍCULOS ESTACIONADOS EN SITIO PROHIBIDO"
+            ],
+            "cambia_por_asignacion": true,
+            "es_requerido": true
+          },
+          "RESPONSABLE": {
+            "tipo": "varchar(100)",
+            "descripcion": "Responsables administrativos",
+            "ejemplos": [
+              "YUCAS JHONNY",
+              "BOSMEDIANO JULIO",
+              "MOREJON BAIRON",
+              "COLIMBA EMILY",
+              "CARVAJAL MARLON",
+              "RIOS KATHERINE",
+              "MANTECA PATRICIO"
+            ],
+            "cambia_por_asignacion": true,
+            "es_requerido": true
+          }
+        }
+      },
+      "SALA_OPERACIONES_DESPACHO": {
+        "descripcion": "Sala de operaciones y despacho",
+        "campos": {
+          "HORARIO": {
+            "tipo": "varchar(50)",
+            "descripcion": "Horarios de despacho",
+            "ejemplos": ["FRANCO", "06:00-14:00", "14:00-22:00", "22:00-06:00", "06:00-14:00/22:00-06:00"],
+            "cambia_por_asignacion": true,
+            "es_requerido": true
+          },
+          "FUNCIONES": {
+            "tipo": "varchar(100)",
+            "descripcion": "Funciones de despacho",
+            "ejemplos": [
+              "DESPACHO-A",
+              "DESPACHO-B", 
+              "DESPACHO-C",
+              "DESPACHO-D",
+              "DESPACHO-E"
+            ],
+            "cambia_por_asignacion": true,
+            "es_requerido": true
+          },
+          "RESPONSABLE": {
+            "tipo": "varchar(100)",
+            "descripcion": "Responsables de despacho",
+            "ejemplos": [
+              "ORDOÑEZ LIZETH",
+              "SUAREZ JESSICA",
+              "LUGO PAUL",
+              "PILACUAN CESAR",
+              "CHICAIZA SILVIA",
+              "OREJUELA MIGUEL"
+            ],
+            "cambia_por_asignacion": true,
+            "es_requerido": true
+          }
+        }
+      },
+      "SALA_VIDEO_VIGILANCIA": {
+        "descripcion": "Sala de video vigilancia",
+        "campos": {
+          "HORARIO": {
+            "tipo": "varchar(50)",
+            "descripcion": "Horarios de vigilancia",
+            "ejemplos": ["FRANCO", "06:00-12:00", "14:00-22:00", "22:00-04:00", "06:00-12:00/22:00-04:00"],
+            "cambia_por_asignacion": true,
+            "es_requerido": true
+          },
+          "FUNCIONES": {
+            "tipo": "varchar(100)",
+            "descripcion": "Funciones de vigilancia",
+            "ejemplos": [
+              "VISOR-A",
+              "VISOR-B",
+              "VISOR-C",
+              "VISOR-D",
+              "VISOR-E"
+            ],
+            "cambia_por_asignacion": true,
+            "es_requerido": true
+          },
+          "RESPONSABLE": {
+            "tipo": "varchar(100)",
+            "descripcion": "Responsables de vigilancia",
+            "ejemplos": [
+              "S/S",
+              "VILLALVA DAYSI",
+              "BASTIDAS JESSICA",
+              "ESPINOZA IORDAN",
+              "HEREMBAS KATHERINE"
+            ],
+            "cambia_por_asignacion": true,
+            "es_requerido": true
+          }
+        }
+      },
+      "UNIDAD_CONTROL_TRANSPORTE": {
+        "descripcion": "Unidad de control de transporte público terminal",
+        "campos": {
+          "HORARIO": {
+            "tipo": "varchar(50)",
+            "descripcion": "Horarios de control",
+            "ejemplos": ["14:00-22:00", "FRANCO", "06:00-14:00"],
+            "cambia_por_asignacion": true,
+            "es_requerido": true
+          },
+          "FUNCIONES": {
+            "tipo": "varchar(200)",
+            "descripcion": "Funciones de control de transporte",
+            "ejemplos": [
+              "VERIFICACIÓN Y CONTROL DE FRECUENCIAS, REVISÓN TÉCNICO VEHÍCULAR Y ALCOHOLEMIA"
+            ],
+            "cambia_por_asignacion": true,
+            "es_requerido": true
+          },
+          "RESPONSABLE": {
+            "tipo": "varchar(100)",
+            "descripcion": "Responsables de control",
+            "ejemplos": [
+              "CONSTANTE SUSANA",
+              "QUEREMBAS EVELYN",
+              "FLORES JHON"
+            ],
+            "cambia_por_asignacion": true,
+            "es_requerido": true
+          }
+        }
+      },
+      "CENTRO_RETENCION_VEHICULAR": {
+        "descripcion": "Centro de retención vehicular",
+        "campos": {
+          "HORARIO": {
+            "tipo": "varchar(50)",
+            "descripcion": "Horarios de retención",
+            "ejemplos": ["06:00-14:00", "14:00-22:00", "22:00-06:00", "06:00-14:00/22:00-06:00", "FRANCO"],
+            "cambia_por_asignacion": true,
+            "es_requerido": true
+          },
+          "FUNCIONES": {
+            "tipo": "varchar(200)",
+            "descripcion": "Funciones de retención",
+            "ejemplos": [
+              "CUSTODIA DE VEHÍCULOS RETENIDOS POR DIFERENTES PROCEDIMIENTOS Y CAUSAS EN MATERIA DE TRÁNSITO"
+            ],
+            "cambia_por_asignacion": true,
+            "es_requerido": true
+          },
+          "RESPONSABLE": {
+            "tipo": "varchar(100)",
+            "descripcion": "Responsables de retención",
+            "ejemplos": [
+              "ORTIZ MISHEL",
+              "TUZA CRISTIAN",
+              "RECALDE RONNIE",
+              "PINTO WILIAM",
+              "DURAN SANTIAGO",
+              "JACOME KEVIN",
+              "MOLINA LENIN",
+              "NEGRETE FRANCISCO",
+              "CADENA JHON",
+              "TORRES BYRON",
+              "CARLOSAMA MARCO"
+            ],
+            "cambia_por_asignacion": true,
+            "es_requerido": true
+          }
+        }
+      },
+      "CENTRO_DETENCION_INFRACTORES": {
+        "descripcion": "Centro de detención de infractores de tránsito",
+        "campos": {
+          "HORARIO": {
+            "tipo": "varchar(50)",
+            "descripcion": "Horarios de detención",
+            "ejemplos": ["06:00-14:00", "22:00-06:00", "06:00-14:00/22:00-06:00", "FRANCO"],
+            "cambia_por_asignacion": true,
+            "es_requerido": true
+          },
+          "FUNCIONES": {
+            "tipo": "varchar(200)",
+            "descripcion": "Funciones de detención",
+            "ejemplos": [
+              "CUSTODIA DE CIUDADANOS DETENIDOS POR DIFERENTES PROCEDIMIENTOS Y CAUSAS EN MATERIA DE TRÁNSITO"
+            ],
+            "cambia_por_asignacion": true,
+            "es_requerido": true
+          },
+          "RESPONSABLE": {
+            "tipo": "varchar(100)",
+            "descripcion": "Responsables de detención",
+            "ejemplos": [
+              "LAHUATTE CRISTIAN",
+              "MAYORGA FRANKLIN",
+              "MANZO JONATHAN",
+              "DIAZ MIGUEL",
+              "PUERRES HAMILTON"
+            ],
+            "cambia_por_asignacion": true,
+            "es_requerido": true
+          }
+        }
+      },
+      "GRUPOS_OPERATIVOS": {
+        "descripcion": "Grupos operativos especializados",
+        "campos": {
+          "GRUPO": {
+            "tipo": "varchar(100)",
+            "descripcion": "Nombre del grupo operativo",
+            "ejemplos": [
+              "GRUPO DE GESTIÓN OPERATIVA",
+              "GRUPO OPERATIVO INFORMALIDAD",
+              "GRUPO OPERATIVO ESTADOS DE EMBRIAGUEZ",
+              "EDUCACIÓN VIAL"
+            ],
+            "cambia_por_asignacion": true,
+            "es_requerido": true
+          },
+          "HORARIO": {
+            "tipo": "varchar(50)",
+            "descripcion": "Horarios de grupos",
+            "ejemplos": ["06:00-14:00", "FRANCO"],
+            "cambia_por_asignacion": true,
+            "es_requerido": true
+          },
+          "RESPONSABLE": {
+            "tipo": "varchar(100)",
+            "descripcion": "Responsables de grupos",
+            "ejemplos": [
+              "ORTEGA DARIO",
+              "CONGO LEYNER",
+              "BASTIDAS ISRAEL",
+              "GONZALON RONALD",
+              "MORILLO ANDREA",
+              "DIAZ ANGELO",
+              "SANCHEZ ANDRÉS",
+              "MORENO XAVIER",
+              "BADILLO LEONARDO",
+              "TERAN GINA",
+              "DELGADO PATRICIO",
+              "CARDENAS CRISTIAN",
+              "PABÓN JENNYFER",
+              "S/S",
+              "MINDA SILVANA",
+              "ALMEIDA JOSÉ",
+              "DE JESÚS ALVARO",
+              "MINDA KLEVER",
+              "BARRAGAN GABRIEL",
+              "LARA FABRICIO",
+              "ALVAREZ JUAN",
+              "GAVILANES MARICELA",
+              "RODRIGUEZ JHONNY",
+              "ESPINOSA KEVIN",
+              "SALAZAR JOSÉ",
+              "TONTAG ADRIANA",
+              "MALPUD ERICK",
+              "CAICEDO STEFANY",
+              "MINDA ANDERSON",
+              "ESTRADA ROBERTO",
+              "VARGAS MARIANA",
+              "MINA RICHARD"
+            ],
+            "cambia_por_asignacion": true,
+            "es_requerido": true
+          }
+        }
+      },
+      "SERVICIO_GRUA": {
+        "descripcion": "Servicio de grúa particular",
+        "campos": {
+          "CONTRATO": {
+            "tipo": "varchar(20)",
+            "descripcion": "Número de contrato",
+            "ejemplos": ["07-2024-EPM", "11-2024-EPM"],
+            "cambia_por_asignacion": false,
+            "es_requerido": true
+          },
+          "PROPIETARIO": {
+            "tipo": "varchar(100)",
+            "descripcion": "Nombre del propietario",
+            "ejemplos": [
+              "ELVIS VINICIO ARCINIEGASOLANO",
+              "MANUEL DIEGO QUISHPE PICHO"
+            ],
+            "cambia_por_asignacion": false,
+            "es_requerido": true
+          },
+          "CONTACTO": {
+            "tipo": "varchar(20)",
+            "descripcion": "Número de contacto",
+            "ejemplos": ["0997672749", "0997723350"],
+            "cambia_por_asignacion": false,
+            "es_requerido": true
+          }
+        }
+      },
+      "CONDUCTORES_PATRULLEROS": {
+        "descripcion": "Conductores y acompañantes de patrulleros",
+        "campos": {
+          "HORARIO": {
+            "tipo": "varchar(50)",
+            "descripcion": "Horarios de patrulleros",
+            "ejemplos": ["06:00-14:00", "14:00-22:00", "22:00-06:00"],
+            "cambia_por_asignacion": true,
+            "es_requerido": true
+          },
+          "PLACA": {
+            "tipo": "varchar(20)",
+            "descripcion": "Placa del vehículo",
+            "ejemplos": ["T1 IMA1300", "T2 IMA1506", "T3 IMA1383"],
+            "cambia_por_asignacion": true,
+            "es_requerido": true
+          },
+          "RESPONSABLE": {
+            "tipo": "varchar(100)",
+            "descripcion": "Conductor responsable",
+            "ejemplos": [
+              "VALENCIA STALIN",
+              "MONTENEGRO MISHEL",
+              "MANOSALVAS ERICK",
+              "COLIMBA LEONIDAS",
+              "PILLO MISHEL",
+              "ENRIQUEZ RICHARD",
+              "LOZA ANDRÉS",
+              "MORALES LUIS",
+              "TUZA FATIMA",
+              "MONTESDEOCA CRISTIAN",
+              "IRUA SANTIAGO",
+              "GOMEZ CARLOS",
+              "ROBLES DANIEL",
+              "ROSAS PAUL",
+              "TORRES FELIPE",
+              "S/S",
+              "CONGO CARLOS"
+            ],
+            "cambia_por_asignacion": true,
+            "es_requerido": true
+          },
+          "SECTOR_NOVEDADES": {
+            "tipo": "text",
+            "descripcion": "Sector y novedades a cumplir",
+            "ejemplos": [
+              "DESDE LAS 06:15 FERIA DE GANADO HASTA LAS 08:30 CONTROL EN LAS PUERTAS DE INGRESO A LA FERIA",
+              "DESDE LAS 06:15 FERIA DE GANADO HASTA LAS 08:30 CIERRE DE VIA 5 CONOS EN LA FLORES VASQUEZ Y CAMILO POMPEYO",
+              "SECTOR NORTE / CONTROL DE TRANSPORTE INTERPROVINCIAL EN RUTAS Y QUE NO INCUMPLAN EL ART.390.7 RETIRO DE VEHÍCULOS ESTACIONADOS EN STIOS PROHIBIDOS (SEÑAL Y HOSPITAL) EN LOS EXTERIORES DEL HOSPITAL SAN VICENTE DE PAUL",
+              "CASCO COMERCIAL/RONDAS AV.EL RETORNO DESDE LA RIO CHINCHIPE HASTA LA RIO BLANCO",
+              "SECTOR SUR /CONTROL DEL ART.390.7 DESDE LA SALIDA DEL TERMINAL HASTA EL SECTOR DE EJIDO DE IBARRA / CONTROL DE INFORMALIDAD EN EL SECTOR DEL REDONDEL DE LA MADRE PARADA DE TAXIS FRENTE A LA TOYOTA (NO PERMITiR ESTACIONAR VEHÍCULOS DE COLOR)",
+              "SECTOR NORTE / CONTROL DE TRANSPORTE INTERPROVINCIAL EN RUTAS Y QUE NO INCUMPLAN EL ART.390.7/ DESDE LAS 19:00 PUNTO MARTILLO LAGUNA MALL RETIRO DE VEHÍCULOS ESTACIONADOS EN STIOS PROHIBIDOS (SEÑAL Y HOSPITAL) EN LOS EXTERIORES DEL HOSPITAL SAN VICENTE DE PAUL",
+              "SECTOR SUR /CONTROL DEL ART.390.7 DESDE LA SALIDA DEL TERMINAL HASTA EL SECTOR DE EJIDO DE IBARRA /DESDE 18:00 A 19:00 SEMAFORO DE SAN ANTONIO/ PUNTO MARTILLO PARQ. NUEVO HOGAR DESDE LAS 19:20",
+              "CASCO COMERCIAL/RONDAS AV.EL RETORNO DESDE LA RIO CHINCHIPE HASTA LA RIO BLANCO / CONTROL DE INFORMALIDAD EN EL SECTOR DEL REDONDEL DE LA MADRE PARADA DE TAXIS FRENTE A LA TOYOTA (NO PERMITIR ESTACIONAR VEHÍCULOS DE COLOR)",
+              "PUNTO MARTILLO DESDE LAS 19:00 EN EL PUNTO.",
+              "DIFERENTES SECTORES /MERCADO MAYORISTA DESDE LAS 04:30 AV. 13 DE ABRIL Y RIOBAMBA",
+              "PUNTO MARTILLO CRV 2 AV. ROLDOS Y JUAN HERNADEZ DESDE LAS 04:30",
+              "DIFERENTES SECTORES / MERCADO MAYORISTA DESDE LAS 04:30 AV. 13 DE ABRIL E INGRESO 1",
+              "DIFERENTES SECTOR DE LA CIUDAD",
+              "DIFERENTES SECTOR DE LA CIUDAD / RETIRO DE VEHÍCULOS ESTACIONADOS EN LA JOSÉ MARTI Y AV. ATAHUALPA"
+            ],
+            "cambia_por_asignacion": true,
+            "es_requerido": true
+          }
+        }
+      },
+      "CONDUCTORES_GRUA": {
+        "descripcion": "Conductor y acompañante de grúa",
+        "campos": {
+          "HORARIO": {
+            "tipo": "varchar(50)",
+            "descripcion": "Horarios de grúa",
+            "ejemplos": ["06:00-14:00", "14:00-22:00", "22:00-06:00"],
+            "cambia_por_asignacion": true,
+            "es_requerido": true
+          },
+          "PLACA": {
+            "tipo": "varchar(20)",
+            "descripcion": "Placa de la grúa",
+            "ejemplos": ["IMA-1289"],
+            "cambia_por_asignacion": false,
+            "es_requerido": true
+          },
+          "RESPONSABLE": {
+            "tipo": "varchar(100)",
+            "descripcion": "Conductor de grúa",
+            "ejemplos": [
+              "MEJÍA CARLOS",
+              "S/S",
+              "CONGO CARLOS"
+            ],
+            "cambia_por_asignacion": true,
+            "es_requerido": true
+          },
+          "SECTOR_NOVEDADES": {
+            "tipo": "text",
+            "descripcion": "Sector y novedades de grúa",
+            "ejemplos": [
+              "DIFERENTES SECTOR DE LA CIUDAD",
+              "DIFERENTES SECTOR DE LA CIUDAD / RETIRO DE VEHÍCULOS ESTACIONADOS EN LA JOSÉ MARTI Y AV. ATAHUALPA"
+            ],
+            "cambia_por_asignacion": true,
+            "es_requerido": true
+          }
+        }
+      },
+      "PERSONAL_CONDUCTORES_FRANCO": {
+        "descripcion": "Personal conductores franco",
+        "campos": {
+          "GRUPO": {
+            "tipo": "varchar(20)",
+            "descripcion": "Grupo del conductor",
+            "ejemplos": ["GRUPO.A", "GRUPO.B"],
+            "cambia_por_asignacion": true,
+            "es_requerido": true
+          },
+          "PLACA": {
+            "tipo": "varchar(20)",
+            "descripcion": "Placa asignada",
+            "ejemplos": ["T1 IMA1300", "T2 IMA1506", "T3 IMA1383", "IMA-1289"],
+            "cambia_por_asignacion": true,
+            "es_requerido": true
+          },
+          "RESPONSABLE": {
+            "tipo": "varchar(100)",
+            "descripcion": "Conductor franco",
+            "ejemplos": [
+              "S/S",
+              "GOMEZ CARLOS",
+              "RAMOS ANDERSON",
+              "ROSAS PAUL",
+              "ILES EDWIN",
+              "ROBLES DANIEL",
+              "ROSERO JORGE",
+              "BELTRAN STALIN"
+            ],
+            "cambia_por_asignacion": true,
+            "es_requerido": true
+          }
+        }
+      },
+      "SERVICIO_MOTORIZADO": {
+        "descripcion": "Servicio motorizado",
+        "campos": {
+          "HORARIO": {
+            "tipo": "varchar(50)",
+            "descripcion": "Horarios motorizados",
+            "ejemplos": ["06:00-14:00"],
+            "cambia_por_asignacion": true,
+            "es_requerido": true
+          },
+          "PLACA_GRUPO": {
+            "tipo": "varchar(20)",
+            "descripcion": "Placa y grupo motorizado",
+            "ejemplos": ["GA568K", "GA577E", "GA614K", "GA592E"],
+            "cambia_por_asignacion": true,
+            "es_requerido": true
+          },
+          "RESPONSABLE": {
+            "tipo": "varchar(100)",
+            "descripcion": "Responsable motorizado",
+            "ejemplos": [
+              "M.84-CAICEDO CARLOS",
+              "M.125.FALCON FERNANDO",
+              "M.177-NAVARRO DANIELA",
+              "M.531-SANCHEZ CRISTIAN"
+            ],
+            "cambia_por_asignacion": true,
+            "es_requerido": true
+          },
+          "SECTOR_NOVEDADES": {
+            "tipo": "text",
+            "descripcion": "Sector y novedades motorizadas",
+            "ejemplos": [
+              "CIRCUITO UNO: DESDE LA SANCHEZ Y CIFUENTES Y VELASCO, LA MERCED, LA GALLERA, MERCADO MAYORISTA, HUERTOS FAMILIARES, ALPACHACA, JARDÍN DE PAZ, EL MILAGRO, PARQUE DE LA MUJER, REDONDLE DE AJAVÍ, MOVIDELNOR, EMELNORTE, AV. JAIME RIVADENEIRA RETIRO DE VEHÍCULOS ESTACIONADOS EN STIOS PROHIBIDOS (SEÑAL Y HOSPITAL) EN LOS EXTERIORS DEL HOSPITAL SAN VICENTE DE PAUL",
+              "CIRCUITO CUATRO: DESDE LA SANCHEZ Y CIFUENTES Y VELASCO, CALLES CHICA NARVAEZ, AV. MARIANO ACOSTA, AV. EUGENIO ESPEJO, AV. TEODORO GOMEZ, AV. CAMILO PONCE, PERIFERICO SUR, SECTOR DE CHORLAVI, SECTOR DE LA FLORIDA, CENTRO DE MATRICULACIÓN, SECTOR LOS GALEANOS, SECTOR EJIDO DE CARAQUI, SECTOR DE TANGUARIN, SECTOR DE SAN ANTONIO. / CONTROL DE INFORMALIDAD EN EL SECTOR DEL REDONDEL DE LA MADRE PARADA DE TAXIS FRENTE A LA TOYOTA (NO PERMITIR ESTACIONAR VEHÍCULOS DE COLOR)",
+              "CIRCUITO TRES: DESDE LA SANCHEZ Y CIFUENTES Y VELASCO, CALLES, OLMEDO, COLÓN, AV. PEREZ GUERREZ, BOLIVAR, AV. TEODORO GOMEZ DE LA TORRES, AV. EL RETORNO, AV. ATAHUALPA, SUCRE, SECTOR DE LA ESPERANZA, SECTOR LOMA DE GUAYABILLAS, SECTOR ROMERILLO BAJO Y ALTO, SECTOR DE CARANQUI.",
+              "CIRCUITO UNO: DESDE LA SANCHEZ Y CIFUENTES Y VELASCO, LA MERCED, LA GALLERA, MERCADO MAYORISTA, HUERTOS FAMILIARES, ALPACHACA, JARDÍN DE PAZ, EL MILAGRO, PARQUE DE LA MUJER, REDONDLE DE AJAVÍ, MOVIDELNOR, EMELNORTE, AV. JAIME RIVADENEIRA. (AVANZA DIRECTO AV- ROLDOS Y JUAN HERNANDEZ 06:00 A 09:00 MERCADO MAYORISTA) ."
+            ],
+            "cambia_por_asignacion": true,
+            "es_requerido": true
+          }
+        }
+      }
+    }
+  }
+}

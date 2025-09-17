@@ -61,6 +61,7 @@ return [
             'engine' => null,
             'options' => extension_loaded('pdo_mysql') ? array_filter([
                 PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+                PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci",
             ]) : [],
         ],
 
@@ -82,6 +83,7 @@ return [
             'engine' => null,
             'options' => extension_loaded('pdo_mysql') ? array_filter([
                 PDO::MYSQL_ATTR_SSL_CA => env('OSGO_MYSQL_ATTR_SSL_CA'),
+                PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci",
             ]) : [],
         ],
 
@@ -103,6 +105,27 @@ return [
             'engine' => null,
             'options' => extension_loaded('pdo_mysql') ? array_filter([
                 PDO::MYSQL_ATTR_SSL_CA => env('PRINC_MYSQL_ATTR_SSL_CA'),
+            ]) : [],
+        ],
+
+        // Sistema Principal connection (read-only for data reference)
+        'sistema_principal' => [
+            'driver' => 'mysql',
+            'host' => env('SISTEMA_PRINCIPAL_DB_HOST', '127.0.0.1'),
+            'port' => env('SISTEMA_PRINCIPAL_DB_PORT', '3306'),
+            'database' => env('SISTEMA_PRINCIPAL_DB_DATABASE', 'sistema_principal'),
+            'username' => env('SISTEMA_PRINCIPAL_DB_USERNAME', 'root'),
+            'password' => env('SISTEMA_PRINCIPAL_DB_PASSWORD', ''),
+            'unix_socket' => env('SISTEMA_PRINCIPAL_DB_SOCKET', ''),
+            'charset' => env('SISTEMA_PRINCIPAL_DB_CHARSET', 'utf8mb4'),
+            'collation' => env('SISTEMA_PRINCIPAL_DB_COLLATION', 'utf8mb4_unicode_ci'),
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'strict' => true,
+            'engine' => null,
+            'options' => extension_loaded('pdo_mysql') ? array_filter([
+                PDO::MYSQL_ATTR_SSL_CA => env('SISTEMA_PRINCIPAL_MYSQL_ATTR_SSL_CA'),
+                PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci",
             ]) : [],
         ],
 

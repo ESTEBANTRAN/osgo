@@ -128,27 +128,17 @@ class OrdenServicioResource extends Resource
                                             ->schema([
                                                 Grid::make(2)
                                                     ->schema([
-                                                        Select::make('CREADO_POR')
+                                                        Placeholder::make('responsable_operativo_display')
                                                             ->label('Responsable Operativo')
-                                                            ->options(function() {
-                                                                return DB::connection('sistema_principal')
-                                                                    ->table('v_personas_disponibles')
-                                                                    ->select('ID_PERSONA', 'CODIGO_AGENTE', 'NOMBRE_COMPLETO')
-                                                                    ->get()
-                                                                    ->mapWithKeys(function($item) {
-                                                                        return [$item->ID_PERSONA => $item->CODIGO_AGENTE . ' - ' . $item->NOMBRE_COMPLETO];
-                                                                    })
-                                                                    ->toArray();
+                                                            ->content(function() {
+                                                                $user = Auth::user();
+                                                                return $user->NAME ?? 'Usuario actual';
                                                             })
-                                                            ->default(fn() => Auth::user()->persona?->ID_PERSONA)
-                                                            ->searchable()
-                                                            ->preload()
-                                                            ->required()
-                                                            ->helperText('Seleccione el responsable operativo de la lista parametrizada.')
-                                                            ->validationAttribute('Responsable Operativo')
-                                                            ->validationMessages([
-                                                                'required' => 'El campo Responsable Operativo es obligatorio.',
-                                                            ]),
+                                                            ->helperText('Usuario que está creando la orden de servicio.'),
+
+                                                        Hidden::make('CREADO_POR')
+                                                            ->default(fn() => Auth::user()->ID_USUARIO)
+                                                            ->required(),
 
                                                         Placeholder::make('NRO_ORDEN')
                                                             ->label('Número de Orden')
